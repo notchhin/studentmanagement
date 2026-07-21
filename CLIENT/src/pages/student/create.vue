@@ -15,7 +15,48 @@ const user = computed(() => {
 
   return new User(data)
 })
+const fileErrors = ref([])
+const acceptedTypes = '.jpg,.jpeg,.png'
+const maxSizeMB = 5
+const familyPhotoPreview = ref(null)
+let familyPhotoPreviewUrl = null
 
+function setFamilyPhotoPreview(file) {
+  if (familyPhotoPreviewUrl) {
+    URL.revokeObjectURL(familyPhotoPreviewUrl)
+    familyPhotoPreviewUrl = null
+  }
+
+  if (file) {
+    familyPhotoPreviewUrl = URL.createObjectURL(file)
+    familyPhotoPreview.value = familyPhotoPreviewUrl
+  } else {
+    familyPhotoPreview.value = null
+  }
+}
+
+function onFilesSelected(files) {
+  fileErrors.value = []
+
+  // VFileInput can emit a single File OR an array depending on version
+  const fileArray = Array.isArray(files) ? files : files ? [files] : []
+  const file = fileArray[0] || null
+
+  if (file) {
+    const sizeOk = file.size / 1024 / 1024 <= maxSizeMB
+    if (!sizeOk) {
+      fileErrors.value.push(`${file.name} exceeds ${maxSizeMB}MB`)
+      formDataLocal.value.family_photo_path = []
+      setFamilyPhotoPreview(null)
+    } else {
+      formDataLocal.value.family_photo_path = [file]
+      setFamilyPhotoPreview(file)
+    }
+  } else {
+    formDataLocal.value.family_photo_path = []
+    setFamilyPhotoPreview(null)
+  }
+}
 const submitting = ref(false)
 const additional_image = ref(avatar1)
 const refForm = ref(null)
@@ -28,7 +69,16 @@ const status = ref([
   { id: 1, name: 'នៅលីវ' },
   { id: 2, name: 'មានគ្រួសារ' },
 ])
-
+const accountStatuses = ref([
+  { id: 1, name: 'Active' },
+  { id: 0, name: 'Inactive' },
+])
+const family_status = ref([
+  { id: 1, name: 'ក្រីក្រ' },
+  { id: 2, name: 'ក្រីក្រ​ខ្លាំង' },
+  { id: 3, name: 'ក្រីក្រមធ្យម' },
+  { id: 4, name: 'មធ្យម' },
+])
 
 const form = {
   code: null,
@@ -66,7 +116,10 @@ const form = {
   g_gender: null,
   g_detail: null,
   photo_path: null,
-  status: 1,
+  status: null,
+  register_at: null,
+  family_photo_path: [],
+  family_status: null,
 }
 
 const refInputEl = ref()
@@ -74,6 +127,7 @@ const formDataLocal = ref(structuredClone(form))
 
 const resetForm = () => {
   formDataLocal.value = structuredClone(form)
+  setFamilyPhotoPreview(null)
 }
 const changeAvatar = file => {
   const fileReader = new FileReader()
@@ -100,17 +154,34 @@ const submitHandler = async () => {
     let formData = new FormData()
 
     for (const key in formDataLocal.value) {
-      if (formDataLocal.value[key] !== null) {
-        formData.append(key, formDataLocal.value[key])
+      const value = formDataLocal.value[key]
+      if (value === null || value === undefined) continue
+
+      if (key === 'family_photo_path') {
+        if (Array.isArray(value)) {
+          if (value.length) {
+            formData.append(key, value[0])
+          }
+        } else {
+          formData.append(key, value)
+        }
+      } else if (Array.isArray(value)) {
+        value.forEach(file => {
+          if (file !== null && file !== undefined) {
+            formData.append(`${key}[]`, file)
+          }
+        })
+      } else {
+        formData.append(key, value)
       }
     }
 
     api
       .post('students-create', formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
       .then(res => {
         router.push('/student')
       })
@@ -155,7 +226,7 @@ const submitHandler = async () => {
                 accept=".jpeg,.png,.jpg,GIF"
                 hidden
                 @input="changeAvatar"
-              />
+              >
 
               <VBtn
                 type="reset"
@@ -171,7 +242,9 @@ const submitHandler = async () => {
               </VBtn>
             </div>
 
-            <p class="text-body-1 mb-0">Allowed JPG, GIF or PNG. Max size of 800K</p>
+            <p class="text-body-1 mb-0">
+              Allowed JPG, GIF or PNG. Max size of 800K
+            </p>
           </div>
         </VCardText>
 
@@ -191,7 +264,7 @@ const submitHandler = async () => {
                   md="12"
                   cols="12"
                 >
-                  <h3>{{$t('personal_infor')}}</h3>
+                  <h3>{{ $t('personal_infor') }}</h3>
                 </VCol>
                 <VCol
                   md="2"
@@ -293,7 +366,7 @@ const submitHandler = async () => {
                   <VSelect
                     v-model="formDataLocal.student_status"
                     :items="status"
-                    item-title='name'
+                    item-title="name"
                     item-value="id"
                     :label="$t('status')"
                   />
@@ -307,9 +380,7 @@ const submitHandler = async () => {
                     :label="$t('other')"
                   />
                 </VCol>
-                <VCol
-                  md="2"
-                >
+                <VCol md="2">
                   <VSelect
                     v-model="formDataLocal.status"
                     :items="accountStatuses"
@@ -317,7 +388,17 @@ const submitHandler = async () => {
                     item-value="id"
                     :label="$t('status')"
                   />
-                  <label for="">{{$t('active')}}</label>
+                </VCol>
+                <VCol
+                  md="2"
+                  cols="12"
+                >
+                  <VTextField
+                    v-model="formDataLocal.register_at"
+                    :label="$t('register_at')"
+                    type="date"
+                    :rules="[v => !!v || 'ថ្ងៃខែចុះឈ្មោះ តម្រូវឱ្យបំពេញ']"
+                  />
                 </VCol>
 
                 <VCol
@@ -370,7 +451,7 @@ const submitHandler = async () => {
                   md="12"
                   cols="12"
                 >
-                <h3>{{ $t('add') }}</h3>
+                  <h3>{{ $t('add') }}</h3>
                 </VCol>
                 <VCol
                   md="3"
@@ -421,7 +502,9 @@ const submitHandler = async () => {
                 >
                   <VCard>
                     <div class="mx-3 my-4">
-                      <h3 class="mb-5">{{ $t('father_infor') }}</h3>
+                      <h3 class="mb-5">
+                        {{ $t('father_infor') }}
+                      </h3>
                       <VRow>
                         <VCol
                           md="6"
@@ -471,7 +554,9 @@ const submitHandler = async () => {
                 >
                   <VCard>
                     <div class="mx-3 my-4">
-                      <h3 class="mb-5">{{ $t('mother_infor') }}</h3>
+                      <h3 class="mb-5">
+                        {{ $t('mother_infor') }}
+                      </h3>
                       <VRow>
                         <VCol
                           md="6"
@@ -519,7 +604,9 @@ const submitHandler = async () => {
 
               <VCard class="my-6">
                 <div class="mx-3 my-4">
-                  <h3 class="mb-5">{{$t('guardian')}}</h3>
+                  <h3 class="mb-5">
+                    {{ $t('guardian') }}
+                  </h3>
                   <VRow>
                     <VCol
                       md="3"
@@ -581,19 +668,110 @@ const submitHandler = async () => {
                   </VRow>
                 </div>
               </VCard>
+              <VCard
+                class="my-6"
+                variant="outlined"
+              >
+                <VCardItem>
+                  <template #prepend>
+                    <VIcon
+                      icon="ri-file-user-line"
+                      size="24"
+                      class="me-1"
+                    />
+                  </template>
+                  <VCardTitle>{{ $t('family_status') }}</VCardTitle>
+                </VCardItem>
+
+                <VDivider />
+
+                <VCardText class="pt-5">
+                  <VRow>
+                    <VCol
+                      cols="12"
+                      md="8"
+                    >
+                      <VFileInput
+                        :model-value="formDataLocal.family_photo_path"
+                        density="comfortable"
+                        variant="outlined"
+                        clearable
+                        prepend-icon=""
+                        prepend-inner-icon="ri-upload-2-line"
+                        :accept="acceptedTypes"
+                        :label="$t('upload_files')"
+                        :placeholder="$t('drop_files_here')"
+                        persistent-hint
+                        @update:model-value="onFilesSelected"
+                      />
+
+                      <div
+                        v-if="formDataLocal.family_photo_path.length || familyPhotoPreview"
+                        class="mt-4"
+                      >
+                        <p class="mb-2">
+                          {{ $t('selected_file') }}:
+                          <strong>{{ formDataLocal.family_photo_path[0]?.name }}</strong>
+                        </p>
+                        <img
+                          v-if="familyPhotoPreview"
+                          :src="familyPhotoPreview"
+                          alt="Family photo preview"
+                          class="family-photo-preview rounded"
+                          style="max-width: 200px; max-height: 200px; object-fit: contain;"
+                        >
+                      </div>
+
+                      <VExpandTransition>
+                        <div
+                          v-if="fileErrors.length"
+                          class="mt-2"
+                        >
+                          <VAlert
+                            v-for="(err, i) in fileErrors"
+                            :key="i"
+                            type="error"
+                            variant="tonal"
+                            density="compact"
+                            class="mb-1"
+                          >
+                            {{ err }}
+                          </VAlert>
+                        </div>
+                      </VExpandTransition>
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="4"
+                    >
+                      <VTextField
+                        v-model="formDataLocal.family_status"
+                        :items="family_status"
+                        item-title="name"
+                        item-value="id"
+                        :label="$t('Family Status')"
+                        :rules="[v => !!v || 'ស្ថានភាពគ្រួសារ តម្រូវឱ្យបំពេញ']"
+                      />
+                    </VCol>
+                  </VRow>
+                </VCardText>
+              </VCard>
 
               <VRow>
                 <!-- 👉 Form Actions -->
                 <VCol
                   cols="12"
-                  class="d-flex justify-end  gap-4"
+                  class="d-flex justify-end gap-4"
                 >
                   <VBtn
                     type="submit"
                     :loading="submitting"
                     color="success"
                   >
-                    <VIcon class="me-2">mdi-content-save-all</VIcon>
+                    <VIcon class="me-2">
+                      mdi-content-save-all
+                    </VIcon>
                     {{ $t('Save changes') }}
                   </VBtn>
 
@@ -617,7 +795,7 @@ const submitHandler = async () => {
 
 <route lang="yaml">
 meta:
-  title: Create Student 
+  title: Create Student
   layout: default
   subject: Auth
   active: 'student'

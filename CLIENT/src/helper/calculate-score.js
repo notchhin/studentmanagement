@@ -18,6 +18,7 @@ export const DataRankings = data => {
 
 export const Result = total => {
   if (total >= 50) return 'Pass'
+  
   return 'Fail'
 }
 
@@ -26,17 +27,7 @@ export const Grade = score => {
   if (score >= 80) return 'B'
   if (score >= 70) return 'C'
   if (score >= 60) return 'D'
-  if (score >= 50) return 'E'
+  
   return 'F'
 }
-export const GradePlus = score => {
-  if (score >= 98) return 'A+'
-  if (score >= 90) return 'A'
-  if (score >= 85) return 'B+'
-  if (score >= 80) return 'B'
-  if (score >= 75) return 'C+'
-  if (score >= 70) return 'C'
-  if (score >= 60) return 'D'
-  if (score >= 50) return 'E'
-  return 'F'
-}
+

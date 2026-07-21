@@ -17,7 +17,7 @@ const shallRenderIcon = isVerticalNavMini(windowWidth)
 
 <template>
   <li
-    v-if="can(item.action, item.subject)"
+    v-if="can(item.permission || item.action, item.subject)"
     class="nav-section-title"
   >
     <div class="title-wrapper">

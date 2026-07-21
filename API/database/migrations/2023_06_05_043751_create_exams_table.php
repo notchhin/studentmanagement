@@ -15,21 +15,19 @@ return new class extends Migration
             $table->id();
             $table->foreignUuid('academic_class_id')->index();
             $table->foreignUuid('student_id')->index();;
-            $table->tinyInteger('att')->default(0);
-            $table->tinyInteger('quiz')->default(0);
-            $table->tinyInteger('hw')->default(0);
-            $table->tinyInteger('re')->default(0);
-            $table->tinyInteger('voc')->default(0);
-            $table->tinyInteger('gr')->default(0);
-            $table->tinyInteger('liu')->default(0);
-            $table->tinyInteger('wr')->default(0);
-            $table->tinyInteger('li')->default(0);
-            $table->tinyInteger('sp')->default(0);
+            $table->float('att')->default(0);
+            $table->float('quiz')->default(0);
+            $table->float('hw')->default(0);
+            $table->float('pp')->default(0);
+            $table->float('pc')->default(0);
+            $table->float('t_mid')->default(0);
+            $table->float('t_final')->default(0);
+            $table->float('sp')->default(0);
+            $table->float('ls')->default(0);
+            $table->float('rd')->default(0);
+            $table->float('st')->default(0);
+            $table->float('wt')->default(0);
 
-            $table->tinyInteger('mid')->default(0);
-            $table->tinyInteger('attitude')->default(0);
-            $table->tinyInteger('final')->default(0);
-            
             $table->float('total', 5, 2)->default(0);
             $table->uuid('created_by')->nullable();
             $table->uuid('updated_by')->nullable();

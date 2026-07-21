@@ -1,8 +1,9 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import _ from 'lodash'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/plugins/auth.module'
 const currentPage = ref(1)
 const headers = ['headers.name', 'headers.start date', 'headers.end date', 'headers.status', 'headers.action']
 
@@ -21,6 +22,19 @@ const total = ref(null)
 const to = ref(null)
 const from = ref(null)
 const search = ref(null)
+const user = useAuthStore().user
+
+const canCreateAcademicYear = computed(() => {
+  return ['create academic_year', 'create academic_years', 'academic_year_create', 'academic_years_create'].some(permission => user.can(permission))
+})
+
+const canEditAcademicYear = computed(() => {
+  return ['edit academic_year', 'edit academic_years', 'academic_year_edit', 'academic_years_edit'].some(permission => user.can(permission))
+})
+
+const canDeleteAcademicYear = computed(() => {
+  return ['delete academic_year', 'delete academic_years', 'academic_year_delete', 'academic_years_delete'].some(permission => user.can(permission))
+})
 
 const q = () => {
   fetchData()
@@ -123,6 +137,7 @@ onMounted(() => {
                 class="text-end"
               >
                 <VBtn
+                  v-if="canCreateAcademicYear"
                   size="large"
                   variant="elevated"
                   prepend-icon="mdi-plus"
@@ -187,6 +202,7 @@ onMounted(() => {
                   <td v-text="row.is_active === 1 ? 'កំពុងប្រតិបត្តិការ' : 'អសកម្ម'" />
                   <td>
                     <v-btn
+                      v-if="canEditAcademicYear"
                       @click="show(row.id)"
                       color="white"
                       elevation="0"
@@ -215,6 +231,7 @@ onMounted(() => {
                       </v-tooltip>
                     </v-btn>
                     <v-btn
+                      v-if="canDeleteAcademicYear"
                       :disabled="row.is_active == 1"
                       @click="onDelete(row.id)"
                       color="white"

@@ -64,6 +64,10 @@ class StoreStudentRequest extends FormRequest
             'g_job'             => ['nullable', 'max:100'],
             'g_gender'          => ['nullable', Rule::in([1, 2])],
             'g_detail'          => ['nullable', 'max:255'],
+            'register_at'       => ['required','date'],
+
+            'family_photo_path'   => ['nullable', Rule::when($this->hasFile('family_photo_path'), ['image'], [])],
+            'family_status'       => ['nullable', 'max:100'],
 
         ];
     }

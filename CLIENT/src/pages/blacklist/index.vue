@@ -1,13 +1,15 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/plugins/auth.module'
 
 const currentPage = ref(1)
 const headers = [
   'headers.id',
   'headers.name',
+  'Sex',
   'headers.phone_number',
   'Reason',
   'From Date',
@@ -29,6 +31,19 @@ const total = ref(null)
 const to = ref(null)
 const from = ref(null)
 const search = ref(null)
+const user = useAuthStore().user
+
+const canCreateBlacklist = computed(() => {
+  return ['create blacklist', 'create blacklists', 'blacklist_create', 'blacklists_create'].some(permission => user.can(permission))
+})
+
+const canEditBlacklist = computed(() => {
+  return ['edit blacklist', 'edit blacklists', 'blacklist_edit', 'blacklists_edit'].some(permission => user.can(permission))
+})
+
+const canDeleteBlacklist = computed(() => {
+  return ['delete blacklist', 'delete blacklists', 'blacklist_delete', 'blacklists_delete'].some(permission => user.can(permission))
+})
 
 const q = () => {
   fetchData()
@@ -149,6 +164,7 @@ onMounted(() => {
             class="text-end"
           >
             <VBtn
+              v-if="canCreateBlacklist"
               size="large"
               variant="elevated"
               prepend-icon="mdi-plus"
@@ -214,6 +230,7 @@ onMounted(() => {
             >
               <td v-text="row.student?.code || ''" />
               <td v-text="(row.student?.last_name || '') + ' ' + (row.student?.first_name || '')" />
+              <td v-text="row.student?.sex_text || ''" />
               <td v-text="row.student?.phone || ''" />
               <td v-text="row.reason || ''" />
               <td v-text="row.from_date || ''" />
@@ -244,14 +261,14 @@ onMounted(() => {
                         </VListItemContent>
                       </VListItem>
 
-                      <VListItem @click="edit(row.id)">
+                      <VListItem v-if="canEditBlacklist" @click="edit(row.id)">
                         <VListItemContent class="menu-item">
                           <VIcon color="success">mdi-square-edit-outline</VIcon>
                           <VListItemTitle>{{ $t('edit') }}</VListItemTitle>
                         </VListItemContent>
                       </VListItem>
 
-                      <VListItem @click="onDelete(row.id)">
+                      <VListItem v-if="canDeleteBlacklist" @click="onDelete(row.id)">
                         <VListItemContent class="menu-item">
                           <VIcon color="error">mdi-minus-circle</VIcon>
                           <VListItemTitle>{{ $t('delete') }}</VListItemTitle>

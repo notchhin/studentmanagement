@@ -1,13 +1,17 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/plugins/auth.module'
 
+const { t } = useI18n()
 const currentPage = ref(1)
 const headers = [
   'headers.id',
   'headers.name',
   'Sex',
+  'village',
   'headers.phone_number',
   'headers.fatherName',
   'headers.motherName',
@@ -28,6 +32,21 @@ const total = ref(null)
 const to = ref(null)
 const from = ref(null)
 const search = ref(null)
+const selectedVillage = ref(null)
+const villages = ref([]) // <-- was missing
+const user = useAuthStore().user
+
+const canCreateStudent = computed(() => {
+  return ['create student', 'create students', 'student_create', 'students_create'].some(permission => user.can(permission))
+})
+
+const canEditStudent = computed(() => {
+  return ['edit student', 'edit students', 'student_edit', 'students_edit'].some(permission => user.can(permission))
+})
+
+const canDeleteStudent = computed(() => {
+  return ['delete student', 'delete students', 'student_delete', 'students_delete'].some(permission => user.can(permission))
+})
 
 const q = () => {
   fetchData()
@@ -40,6 +59,7 @@ const fetchData = () => {
       perPage: perPage.value,
       page: currentPage.value,
       search: search.value,
+      village: selectedVillage.value,
     })
     .then(res => {
       data.value = res.data?.data?.data
@@ -47,6 +67,13 @@ const fetchData = () => {
       from.value = res.data?.data?.from
       to.value = res.data?.data?.to
       numPages.value = Math.ceil(res.data.data.total / perPage.value)
+
+      if (res.data?.villages) {
+        villages.value = [
+          { id: null, name: t('All') },
+          ...res.data.villages,
+        ]
+      }
     })
     .finally(() => {
       loading.value = false
@@ -57,6 +84,11 @@ watch(currentPage, (newValue, oldValue) => {
   if (newValue) {
     fetchData()
   }
+})
+
+watch(selectedVillage, () => {
+  currentPage.value = 1
+  fetchData()
 })
 
 const edit = id => {
@@ -100,7 +132,10 @@ onMounted(() => {
     >
       <VDivider />
       <VCardText>
-        <VRow justify="start">
+        <VRow
+          align="center"
+          justify="start"
+        >
           <VCol
             cols="12"
             md="4"
@@ -114,16 +149,27 @@ onMounted(() => {
               @update:modelValue="fetchData"
             />
           </VCol>
+
           <VCol
             cols="12"
-            md="4"
-          ></VCol>
+            md="3"
+          >
+            <VSelect
+              v-model="selectedVillage"
+              :items="villages"
+              item-title="name"
+              item-value="id"
+              :label="$t('village')"
+            />
+          </VCol>
+
           <VCol
-            cols="6"
-            md="4"
+            cols="12"
+            md="5"
             class="text-end"
           >
             <VBtn
+              v-if="canCreateStudent"
               size="large"
               variant="elevated"
               prepend-icon="mdi-plus"
@@ -159,7 +205,7 @@ onMounted(() => {
               <VProgressLinear
                 indeterminate
                 class="line"
-              ></VProgressLinear>
+              />
             </td>
             <tr v-if="loading && data.length === 0">
               <td
@@ -190,16 +236,17 @@ onMounted(() => {
               <td v-text="row.code" />
               <td v-text="row.last_name + ' ' + row.first_name" />
               <td v-text="row.sex_text" />
+              <td v-text="row.village" />
               <td v-text="row.phone" />
-              <td v-text="(row.d_last_name || '') + ' ' + (row.d_first_name || '')"></td>
-              <td v-text="(row.m_last_name || '') + ' ' + (row.m_first_name || '')"></td>
+              <td v-text="(row.d_last_name || '') + ' ' + (row.d_first_name || '')" />
+              <td v-text="(row.m_last_name || '') + ' ' + (row.m_first_name || '')" />
               <td>
                 <VChip
-                  :color="row.status === 1 ? 'success' : (row.status === 2 ? 'warning' : 'error')"
+                  :color="row.status === 1 ? 'success' : row.status === 2 ? 'warning' : 'warning'"
                   size="small"
                   label
                 >
-                  {{ row.status === 1 ? $t('Active') : (row.status === 2 ? $t('Blacklist') : $t('Inactive')) }}
+                  {{ row.status === 1 ? $t('Active') : $t('Inactive') }}
                 </VChip>
               </td>
 
@@ -216,27 +263,32 @@ onMounted(() => {
                         v-bind="props"
                         icon="mdi-dots-vertical"
                         variant="plain"
-                      >
-                      </VBtn>
+                      />
                     </template>
                     <VList class="menu-list">
                       <VListItem @click="show(row.id)">
                         <VListItemContent class="menu-item">
-                          <VIcon color="grey">mdi-eye</VIcon>
+                          <VIcon color="grey">
+                            mdi-eye
+                          </VIcon>
                           <VListItemTitle>{{ $t('detail') }}</VListItemTitle>
                         </VListItemContent>
                       </VListItem>
 
-                      <VListItem @click="edit(row.id)">
+                      <VListItem v-if="canEditStudent" @click="edit(row.id)">
                         <VListItemContent class="menu-item">
-                          <VIcon color="success">mdi-square-edit-outline</VIcon>
+                          <VIcon color="success">
+                            mdi-square-edit-outline
+                          </VIcon>
                           <VListItemTitle>{{ $t('edit') }}</VListItemTitle>
                         </VListItemContent>
                       </VListItem>
 
-                      <VListItem @click="onDelete(row.id)">
+                      <VListItem v-if="canDeleteStudent" @click="onDelete(row.id)">
                         <VListItemContent class="menu-item">
-                          <VIcon color="error">mdi-minus-circle</VIcon>
+                          <VIcon color="error">
+                            mdi-minus-circle
+                          </VIcon>
                           <VListItemTitle>{{ $t('delete') }}</VListItemTitle>
                         </VListItemContent>
                       </VListItem>
@@ -289,13 +341,15 @@ onMounted(() => {
           <VBtn
             color="error"
             @click="confirmDialog = false"
-            >{{ $t('no') }}</VBtn
           >
+            {{ $t('no') }}
+          </VBtn>
           <VBtn
             color="success"
             @click="confirmAction"
-            >{{ $t('yes') }}</VBtn
           >
+            {{ $t('yes') }}
+          </VBtn>
         </VCardActions>
       </VCard>
     </VDialog>

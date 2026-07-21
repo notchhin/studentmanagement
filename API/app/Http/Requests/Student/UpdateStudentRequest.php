@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Student;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 class UpdateStudentRequest extends FormRequest
@@ -31,7 +32,7 @@ class UpdateStudentRequest extends FormRequest
             'gender'            => ['required', Rule::in([1, 2, 3])],
             'dob'               => ['required', 'date'],
             'from'              => ['nullable', 'max:255'],
-            'photo_path'        => ['nullable', 'image'],
+            'photo_path'        => ['nullable', Rule::when($this->hasFile('photo_path'), ['image'], [])],
             'other'             => ['nullable', 'max:255'],
             'student_status'    => ['nullable', Rule::in([1, 2, 3, 4])],
             'status'            => ['nullable', Rule::in([0, 1, 2])],
@@ -63,6 +64,9 @@ class UpdateStudentRequest extends FormRequest
             'g_job'             => ['nullable', 'max:100'],
             'g_gender'          => ['nullable', Rule::in([1, 2])],
             'g_detail'          => ['nullable', 'max:255'],
+            'register_at'       => ['required','date'],
+            'family_photo_path' => ['nullable', Rule::when($this->hasFile('family_photo_path'), ['image'], [])],
+            'family_status'     => ['nullable', 'max:100'],
         ];
     }
 }

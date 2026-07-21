@@ -1,8 +1,7 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import _ from 'lodash'
-import User from '../../class/User'
 import { useAuthStore } from '@/plugins/auth.module'
 import { useRouter } from 'vue-router'
 const currentPage = ref(1)
@@ -26,12 +25,18 @@ const academic_years = ref([])
 const academic_year_id = ref(null)
 const search = ref(null)
 const store = useAuthStore()
+const user = computed(() => store.user)
 
-const user = computed(() => {
-  const data = {
-    user: store?._user,
-  }
-  return new User(data)
+const canCreateAcademicClass = computed(() => {
+  return ['create academic_class', 'create academic classes', 'academic_class_create', 'academic_classes_create'].some(permission => user.value.can(permission))
+})
+
+const canEditAcademicClass = computed(() => {
+  return ['edit academic_class', 'edit academic classes', 'academic_class_edit', 'academic_classes_edit'].some(permission => user.value.can(permission))
+})
+
+const canDeleteAcademicClass = computed(() => {
+  return ['delete academic_class', 'delete academic classes', 'academic_class_delete', 'academic_classes_delete'].some(permission => user.value.can(permission))
 })
 const q = () => {
   fetchData()
@@ -100,8 +105,8 @@ onMounted(() => {
 
 <template>
   <div>
-    <v-row style="font-family: 'Battambang', Times, serif">
-      <v-col
+    <VRow style="font-family: 'Battambang', Times, serif">
+      <VCol
         cols="12"
         md="10"
         lg="10"
@@ -112,7 +117,7 @@ onMounted(() => {
           class="mb-5"
         >
           <VDivider />
-          <VCard-text>
+          <VCardText>
             <VRow justify="start">
               <VCol
                 cols="12"
@@ -124,65 +129,56 @@ onMounted(() => {
                   append-inner-icon="mdi-search"
                   @keypress.enter="q"
                   @click:append-inner="q"
-                  @update:modelValue="fetchData"
+                  @update:model-value="fetchData"
                 />
               </VCol>
               <VCol
                 cols="12"
                 md="3"
               >
-                <v-autocomplete
+                <VAutocomplete
                   v-model="academic_year_id"
                   :items="academic_years"
                   item-value="id"
                   item-title="name"
                   :placeholder="$t('academic_year')"
-                  @update:modelValue="fetchData"
+                  @update:model-value="fetchData"
                 />
               </VCol>
 
-              <v-col
+              <VCol
                 cols="6"
                 md="2"
                 class="text-start"
               >
-                <!-- <VBtn
+                <!--
+                  <VBtn
                   size="large"
                   variant="outlined"
                   prepend-icon="mdi-search"
                   color="info"
                   @click="q"
-                >
+                  >
                   {{ $t('Search') }}
-                </VBtn> -->
-              </v-col>
-              <v-col
+                  </VBtn> 
+                -->
+              </VCol>
+              <VCol
                 cols="6"
                 md="3"
                 class="text-end"
               >
                 <VBtn
+                  v-if="canCreateAcademicClass"
                   size="large"
                   variant="elevated"
                   prepend-icon="mdi-plus"
                   color="info"
-                  to="academic-class/create"
+                  to="/academic-class/create"
                 >
                   {{ $t('add new') }}
-                </VBtn></v-col
-              >
-              <!-- <VBtn
-                  size="large"
-                  variant="elevated"
-                  prepend-icon="mdi-plus"
-                  color="info"
-                  to="academic-class/create"
-                  v-if="user.can('academic_class_create')"
-                  
-                >
-                  {{ $t('add new') }}
-                </VBtn></v-col
-              > -->
+                </VBtn>
+              </VCol>
             </VRow>
 
             <VTable
@@ -207,17 +203,19 @@ onMounted(() => {
                   v-if="loading"
                   :colspan="headers.length"
                 >
-                  <v-progress-linear
+                  <VProgressLinear
                     indeterminate
                     class="line"
-                  ></v-progress-linear>
+                  />
                 </td>
                 <tr v-if="loading && data.length === 0">
                   <td
                     :colspan="headers.length"
                     class="text-center"
                   >
-                    <div class="text-subtitle-2">{{ $t('in progress') }}</div>
+                    <div class="text-subtitle-2">
+                      {{ $t('in progress') }}
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="!loading && data.length === 0">
@@ -238,78 +236,88 @@ onMounted(() => {
                     <span v-if="row.type == 3">កុំព្យូទ័រ</span>
                   </td>
 
-                  <td v-text="row.room.room" />
-                  <td v-text="row.level.level" />
-                  <td v-text="row.time?.time" />
-                  <td v-text="row.teacher.name" />
+                  <td v-text="row.room?.room || '-'" />
+                  <td v-text="row.level?.level || '-'" />
+                  <td v-text="row.time?.time || '-'" />
+                  <td v-text="row.teacher?.name || '-'" />
                   <td>
-                    <v-btn
-                      @click="show(row.id)"
+                    <VBtn
                       color="white"
                       elevation="0"
                       flat
+                      @click="show(row.id)"
                     >
-                      <v-icon color="grey">mdi-eye</v-icon>
-                      <v-tooltip
+                      <VIcon color="grey">
+                        mdi-eye
+                      </VIcon>
+                      <VTooltip
                         activator="parent"
                         location="bottom"
                       >
                         {{ $t('checked') }}
-                      </v-tooltip>
-                    </v-btn>
+                      </VTooltip>
+                    </VBtn>
 
-                    <v-btn
-                      @click="edit(row.id)"
+                    <VBtn
+                      v-if="canEditAcademicClass"
                       color="white"
                       elevation="0"
                       flat
+                      @click="edit(row.id)"
                     >
-                      <v-icon color="success">mdi-square-edit-outline</v-icon>
-                      <v-tooltip
+                      <VIcon color="success">
+                        mdi-square-edit-outline
+                      </VIcon>
+                      <VTooltip
                         activator="parent"
                         location="bottom"
                       >
                         {{ $t('edit') }}
-                      </v-tooltip>
-                    </v-btn>
+                      </VTooltip>
+                    </VBtn>
 
-                    <v-btn
-                      @click="onDelete(row.id)"
+                    <VBtn
+                      v-if="canDeleteAcademicClass"
                       color="white"
                       elevation="0"
                       flat
+                      @click="onDelete(row.id)"
                     >
-                      <v-icon color="error">mdi-trash</v-icon>
-                      <v-tooltip
+                      <VIcon color="error">
+                        mdi-trash
+                      </VIcon>
+                      <VTooltip
                         activator="parent"
                         location="bottom"
                       >
                         {{ $t('delete') }}
-                      </v-tooltip>
-                    </v-btn>
-                    <!-- <v-btn
+                      </VTooltip>
+                    </VBtn>
+                    <!--
+                      <v-btn
                       v-if="user.can('academic_class_delete')"
                       @click="onDelete(row.id)"
                       color="white"
                       elevation="0"
                       flat
-                    >
+                      >
                       <v-icon color="error">mdi-trash</v-icon>
                       <v-tooltip
-                        activator="parent"
-                        location="bottom"
+                      activator="parent"
+                      location="bottom"
                       >
-                        លុប
+                      លុប
                       </v-tooltip>
-                    </v-btn> -->
+                      </v-btn> 
+                    -->
                   </td>
                 </tr>
               </tbody>
             </VTable>
-          </VCard-text>
-          <VCard-actions>
-            <v-row>
-              <v-col
+          </VCardText>
+          <VCardActions>
+            <VRow>
+              <VCol
                 cols="12"
                 lg="6"
                 md="12"
@@ -317,9 +325,9 @@ onMounted(() => {
                 xs="12"
                 class="mt-3 text-center"
               >
-                <span v-if="!loading">{{ from }} - {{ to }} {{ total === 0 ? '' : `of ${total}` }}</span></v-col
-              >
-              <v-col
+                <span v-if="!loading">{{ from }} - {{ to }} {{ total === 0 ? '' : `of ${total}` }}</span>
+              </VCol>
+              <VCol
                 cols="12"
                 lg="6"
                 md="12"
@@ -332,36 +340,39 @@ onMounted(() => {
                   :length="numPages"
                   :total-visible="10"
                 />
-              </v-col>
-            </v-row>
-          </VCard-actions>
+              </VCol>
+            </VRow>
+          </VCardActions>
         </VCard>
-      </v-col>
-    </v-row>
+      </VCol>
+    </VRow>
 
-    <v-dialog
+    <VDialog
       v-model="confirmDialog"
       style="max-width: 500px"
       persistent
     >
-      <v-card>
-        <v-card-text> {{ $t('delete_class') }} </v-card-text>
-        <v-card-actions class="ml-auto">
-          <v-btn
+      <VCard>
+        <VCardText> {{ $t('delete_class') }} </VCardText>
+        <VCardActions class="ml-auto">
+          <VBtn
             color="error"
             @click="confirmDialog = false"
-            >{{ $t('no') }}</v-btn
           >
-          <v-btn
+            {{ $t('no') }}
+          </VBtn>
+          <VBtn
             color="success"
             @click="confirmDelete"
-            >{{ $t('yes') }}</v-btn
           >
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+            {{ $t('yes') }}
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
+
 <route lang="yaml">
 meta:
   title: Study Class

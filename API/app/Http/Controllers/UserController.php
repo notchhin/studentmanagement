@@ -58,7 +58,7 @@ class UserController extends Controller
                 'username' => $request->username,
                 'email' => $request->email,
                 'role_id' => $request->role_id,
-                'password' => "Password@123"
+                'password' => bcrypt($request->password),
             ]);
 
             RoleUser::create([
@@ -152,7 +152,7 @@ class UserController extends Controller
 
             $user = User::findOrFail($request->id);
 
-            $user->password = 'Password@123';
+            $user->password = bcrypt($request->password);
 
             $user->save();
 

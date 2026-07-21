@@ -1,10 +1,10 @@
-<!-- កាត់ដេរ -->
+<!-- កុំព្យូទ័រ -->
 <script setup>
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/plugins/utilites'
 import { Printd } from 'printd'
-import { DataRankings, GradePlus } from '@/helper/calculate-score'
+import { DataRankings, Grade, Result } from '@/helper/calculate-score'
 const route = useRoute()
 const model = ref({})
 const data = ref([])
@@ -25,7 +25,6 @@ const imgP = `
 const onPrint = () => {
   d.print(document.getElementById('table'), [imgP])
 }
-
 const fetchData = () => {
   api
     .post('academic-classes-detail', {
@@ -48,6 +47,7 @@ const fetchTable = () => {
     })
 }
 const currentYear = computed(() => new Date().getFullYear())
+
 onMounted(() => {
   fetchData()
 })
@@ -65,7 +65,7 @@ onMounted(() => {
           ref="refForm"
           lazy-validation
         >
-          <VCard :title="`${$t('class')} ${model.name} ${$t('academic_year')} ${model.academic_year?.name}`">
+          <VCard :title="`${$t('class')} ${model.level?.level} ${$t('academic_year')} ${model.academic_year?.name}`">
             <VDivider />
             <VBtn
               class="mt-5 mx-5"
@@ -79,6 +79,11 @@ onMounted(() => {
               <VRow class="text-h6 font-weight-bold text-center my-5 mx-3">
                 <div style="width: 40%" />
                 <VRow style="width: 60%">
+                  <!--
+                    <div>
+                    
+                    </div> 
+                  -->
                   <VSpacer />
                   <div>
                     <VBtn
@@ -130,7 +135,7 @@ onMounted(() => {
                   <tr>
                     <td>
                       <VRow>
-                        <VCol style="margin: 0 85%">
+                        <VCol style="margin: 0 90%">
                           <VImg
                             src="/src/assets/images/logo_school.png"
                             :width="100"
@@ -139,7 +144,7 @@ onMounted(() => {
                       </VRow>
                     </td>
 
-                    <td colspan="12" />
+                    <td colspan="14" />
                     <td
                       colspan="8"
                       valign="bottom"
@@ -163,13 +168,13 @@ onMounted(() => {
                         font-weight: bold;
                         line-height: 30px;
                         font-size: 16px;
-                        font-family: 'Times New Roman', Times, serif;
+                        font-family: 'Siemreap', Times, serif;
                       "
                     >
                       សាលារៀនជំនួយដល់កុមារកម្ពុជា
                     </td>
                     <td colspan="3" />
-                    <td colspan="6" />
+                    <td colspan="8" />
                     <td
                       colspan="8"
                       valign="center"
@@ -199,7 +204,7 @@ onMounted(() => {
                       Schools Helping Cambodian Children
                     </td>
                     <td colspan="3" />
-                    <td colspan="6" />
+                    <td colspan="8" />
                     <td
                       colspan="8"
                       valign="center"
@@ -224,7 +229,7 @@ onMounted(() => {
                       "
                     />
                     <td
-                      colspan="10"
+                      colspan="12"
                       style="
                         text-align: center;
                         font-weight: bold;
@@ -234,6 +239,10 @@ onMounted(() => {
                       "
                     >
                       {{ model.academic_year?.name }}
+                      <!--
+                        {{ exam_month.id != 0 ? 'ខែ' : '' }}{{ exam_month.name
+                        }}{{ params_s ? 'លើកទី' + params_s : '' }} 
+                      -->
                     </td>
                   </tr>
 
@@ -243,11 +252,11 @@ onMounted(() => {
                       style="
                         text-align: center;
                         font-weight: bold;
-                        font-size: 16px;
-                        font-family: 'Times New Roman', Times, serif;
+                        font-size: 15px;
+                        font-family: 'Siemreap', Times, serif;
                       "
                     >
-                      Teacher :  {{ model.teacher?.name }}
+                      Teacher : {{ model.teacher?.name }}
                     </td>
                     <td
                       colspan="4"
@@ -258,7 +267,7 @@ onMounted(() => {
                         font-family: 'Times New Roman', Times, serif;
                       "
                     >
-                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Room : {{ model.room?.room }}
+                      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Room : {{ model.room?.room }}
                     </td>
                   </tr>
                   <tr style="line-height: 40px">
@@ -271,7 +280,7 @@ onMounted(() => {
                         font-family: 'Times New Roman', Times, serif;
                       "
                     >
-                      Level &nbsp;: {{ model.level?.level }} 
+                      &nbsp;&nbsp; Level &nbsp;: {{ model.level?.level }}
                     </td>
                     <td
                       colspan="4"
@@ -282,22 +291,22 @@ onMounted(() => {
                         font-family: 'Times New Roman', Times, serif;
                       "
                     >
-                      &nbsp;  Time &nbsp;: {{ model.time?.time }}
+                      &nbsp; Time &nbsp;: {{ model.time?.time }}
                     </td>
                   </tr>
-                  <tr style="font-family: 'Times New Roman', Times, serif;font-size: 17px;">
+                  <tr style="font-family: 'Times New Roman', Times, serif; font-size: 17px">
                     <th
                       rowspan="2"
-                      style="border: 1px solid black; padding: 5px;"
+                      style="border: 1px solid black; padding: 5px"
                     >
                       N<sup>o</sup>
                     </th>
                     <th
                       rowspan="2"
                       style="border: 1px solid black; padding: 5px"
-                      colspan="8"
+                      colspan="6"
                     >
-                      Name
+                      Student Name
                     </th>
                     <th
                       rowspan="2"
@@ -307,31 +316,73 @@ onMounted(() => {
                       Sex
                     </th>
                     <th
-                      colspan="2"
                       rowspan="2"
+                      colspan="1"
                       style="border: 1px solid black; padding: 5px"
                     >
-                      Final
+                      Attendance
                     </th>
                     <th
-                      colspan="2"
-                      rowspan="2"
+                      rowspan="1"
+                      colspan="1"
                       style="border: 1px solid black; padding: 5px"
                     >
-                      Averange
+                      ATT
+                    </th>
+                    <th
+                      rowspan="1"
+                      colspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      HW
+                    </th>
+                    <th
+                      rowspan="1"
+                      colspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      Quiz
+                    </th>
+                    <th
+                      colspan="1"
+                      rowspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      PP
+                    </th>
+                    <th
+                      colspan="1"
+                      rowspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      PC
+                    </th>
+                    <th
+                      colspan="1"
+                      rowspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      T.Mid
                     </th>
 
                     <th
-                      colspan="2"
-                      rowspan="2"
+                      colspan="1"
+                      style="border: 1px solid black; padding: 5px"
+                      rowspan="1"
+                    >
+                      T.Final
+                    </th>
+                    <th
+                      colspan="1"
+                      rowspan="1"
                       style="border: 1px solid black; padding: 5px"
                     >
                       Rank
                     </th>
                     <th
-                      colspan="2"
+                      colspan="1"
+                      rowspan="1"
                       style="border: 1px solid black; padding: 5px"
-                      rowspan="2"
                     >
                       Grade
                     </th>
@@ -346,7 +397,7 @@ onMounted(() => {
                       {{ index + 1 }}
                     </td>
                     <td
-                      colspan="8"
+                      colspan="6"
                       style="border: 1px solid black; padding: 5px"
                     >
                       {{ ret.last_name + ' ' + ret.first_name }}
@@ -357,36 +408,86 @@ onMounted(() => {
                     >
                       {{ ret.gender == 1 ? 'ប្រុស' : 'ស្រី' }}
                     </td>
+
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                    >
+                      {{ ret.att }}
+                    </td>
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                    >
+                      {{ ret.attitude }}
+                    </td>
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                    >
+                      {{ ret.hw }}
+                    </td>
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                    >
+                      {{ ret.mid }}
+                    </td>
                     <td
                       style="text-align: center; border: 1px solid black; padding: 5px"
-                      colspan="2"
+                      colspan="1"
                     >
                       {{ ret.final }}
                     </td>
                     <td
                       style="text-align: center; border: 1px solid black; padding: 5px"
-                      colspan="2"
+                      colspan="1"
                     >
-                      {{ ret.final / 10 }}
+                      {{ ret.total }}
                     </td>
-
                     <td
                       style="text-align: center; border: 1px solid black; padding: 5px"
-                      colspan="2"
+                      colspan="1"
+                    >
+                      {{ ret.total / 10 }}
+                    </td>
+                    <td
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      {{ Result(ret.total) }}
+                    </td>
+                    <td
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                      colspan="1"
                     >
                       {{ ret.rank }}
                     </td>
 
                     <td
                       style="text-align: center; border: 1px solid black; padding: 5px"
-                      colspan="2"
+                      colspan="1"
                     >
-                      {{ GradePlus(ret.final) }}
+                      {{ Grade(ret.total) }}
                     </td>
                   </tr>
                   <td
                     style="height: 45px"
+                    colspan="7"
                   />
+                  <td colspan="2">
+                    <table>
+                      <div
+                        style="
+                          width: 250%;
+                          height: 2vh;
+                          font-weight: bold;
+                          font-size: 16px;
+                          font-family: 'Times New Roman', Times, serif;
+                        "
+                      />
+                    </table>
+                  </td>
                   <tr>
                     <td
                       style="
@@ -412,7 +513,7 @@ onMounted(() => {
                     >
                       Seen and approved
                     </td>
-                    <td colspan="10" />
+                    <td colspan="12" />
                     <td
                       style="
                         text-align: center;
@@ -420,7 +521,7 @@ onMounted(() => {
                         font-size: 16px;
                         font-family: 'Times New Roman', Times, serif;
                       "
-                      colspan="15"
+                      colspan="18"
                     >
                       Date ......./.........................../{{ currentYear }}
                     </td>
@@ -439,7 +540,7 @@ onMounted(() => {
                     </td>
                     <td
                       style="text-align: center"
-                      colspan="10"
+                      colspan="12"
                     />
                     <td
                       style="
@@ -448,7 +549,7 @@ onMounted(() => {
                         font-size: 16px;
                         font-family: 'Times New Roman', Times, serif;
                       "
-                      colspan="16"
+                      colspan="15"
                     >
                       TEACHER
                     </td>
@@ -467,20 +568,21 @@ onMounted(() => {
                   </tr>
                   <tr>
                     <td
-                      style="text-align: center; height: 80px"
-                      colspan="14"
+                      style="text-align: center; height: 100px"
+                      colspan="15"
                     />
                     <td
                       style="
                         text-align: center;
                         font-weight: bold;
                         font-size: 16px;
-                        font-family: 'Times New Roman', Times, serif;
-                        height: 150px;
+                        font-family: 'Siemreap', Times, serif;
+                        height: 50px;
                       "
                       colspan="10"
                     >
                       {{ model.teacher?.name }}
+                      <!-- Smey Need You -->
                     </td>
                     <td
                       style="text-align: center"

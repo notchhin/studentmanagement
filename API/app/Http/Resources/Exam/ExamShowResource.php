@@ -23,16 +23,16 @@ class ExamShowResource extends JsonResource
             'att' => $this['att'] ?? 0,
             'quiz' => $this['quiz'] ?? 0,
             'hw' => $this['hw'] ?? 0,
-            're' => $this['re'] ?? 0,
-            'voc' => $this['voc'] ?? 0,
-            'gr' => $this['gr'] ?? 0,
-            'liu' => $this['liu'] ?? 0,
-            'wr' => $this['wr'] ?? 0,
-            'li' => $this['li'] ?? 0,
+            'pp' => $this['pp'] ?? 0,
+            'pc' => $this['pc'] ?? 0,
+            't_mid' => $this['t_mid'] ?? 0,
+            't_final' => $this['t_final'] ?? 0,
             'sp' => $this['sp'] ?? 0,
-            'mid' => $this['mid'] ?? 0,
-            'attitude' => $this['attitude'] ?? 0,
-            'final' => $this['final'] ?? 0,
+            'ls' => $this['ls'] ?? 0,
+            'rd' => $this['rd'] ?? 0,
+            'st' => $this['st'] ?? 0,
+            'wt' => $this['wt'] ?? 0,
+
             'total' => $this['total'] ?? 0
         ];
     }

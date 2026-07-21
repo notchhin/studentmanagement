@@ -41,7 +41,7 @@ return new class extends Migration
             $table->string('province', 100);
             $table->string('phone', 50)->nullable();
             $table->tinyInteger('student_status')->nullable();
-            
+
             // 1 orphan dad, 2 orphan mom, 3 orphan dad and mom, 4 disabled ពិការភាព
             $table->string('from')->nullable();
             $table->string('photo_path', 100)->nullable();
@@ -56,6 +56,8 @@ return new class extends Migration
             $table->text('g_detail',)->nullable();
             $table->uuid('created_by')->nullable();
             $table->uuid('updated_by')->nullable();
+            $table->string('family_photo_path', 100)->nullable();
+            $table->string('family_status', 100)->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -80,8 +80,8 @@ onMounted(async () => {
         <VDivider />
         <VCardText>
           <VForm
-            class="mt-6"
             ref="refForm"
+            class="mt-6"
             lazy-validation
             @submit.prevent="onSubmit"
           >
@@ -91,10 +91,10 @@ onMounted(async () => {
                 cols="12"
               >
                 <VAutocomplete
+                  v-model="form.type"
                   :items="options.class_type"
                   item-value="id"
                   item-title="name"
-                  v-model="form.type"
                   :label="$t('ប្រភេទថ្នាក់រៀន')"
                   :rules="[v => !!v || 'ប្រភេទថ្នាក់រៀន តម្រូវឱ្យបំពេញ']"
                 />
@@ -104,10 +104,10 @@ onMounted(async () => {
                 cols="12"
               >
                 <VAutocomplete
+                  v-model="form.academic_year_id"
                   :items="options.academic_years"
                   item-value="id"
                   item-title="name"
-                  v-model="form.academic_year_id"
                   :label="$t('academic_year')"
                   :rules="[v => !!v || 'ឆ្នាំសិក្សា តម្រូវឱ្យបំពេញ']"
                 />
@@ -117,10 +117,10 @@ onMounted(async () => {
                 cols="12"
               >
                 <VAutocomplete
+                  v-model="form.teacher_id"
                   :items="options.teachers"
                   item-value="id"
                   item-title="name"
-                  v-model="form.teacher_id"
                   :label="$t('class teacher')"
                   :rules="[v => !!v || 'គ្រូបន្ទុកថ្នាក់ តម្រូវឱ្យបំពេញ']"
                 />
@@ -130,38 +130,38 @@ onMounted(async () => {
                 cols="12"
               >
                 <VAutocomplete
+                  v-model="form.room_id"
                   :items="options.rooms"
                   item-value="id"
                   item-title="room"
-                  v-model="form.room_id"
                   :label="$t('room')"
                   :rules="[v => !!v || 'បន្ទប់ តម្រូវឱ្យបំពេញ']"
                 />
               </VCol>
               <VCol
+                v-if="form.type == 2 || form.type == 3"
                 md="4"
                 cols="12"
-                v-if="form.type == 2 || form.type == 3"
               >
                 <VAutocomplete
+                  v-model="form.time_id"
                   :items="options.times"
                   item-value="id"
                   item-title="time"
-                  v-model="form.time_id"
                   :label="$t('time')"
                   :rules="[v => !!v || 'ម៉ោង តម្រូវឱ្យបំពេញ']"
                 />
               </VCol>
               <VCol
+                v-if="form.type == 2 || form.type == 3"
                 md="4"
                 cols="12"
-                v-if="form.type == 2 || form.type == 3"
               >
                 <VAutocomplete
+                  v-model="form.level_id"
                   :items="options.levels"
                   item-value="id"
                   item-title="level"
-                  v-model="form.level_id"
                   :label="$t('level')"
                   :rules="[v => !!v || 'កម្រិត តម្រូវឱ្យបំពេញ']"
                 />
@@ -174,8 +174,9 @@ onMounted(async () => {
                   type="submit"
                   :loading="submitting"
                   color="success"
-                  ><VIcon>mdi-content-save</VIcon> {{ $t('Save changes') }}</VBtn
                 >
+                  <VIcon>mdi-content-save</VIcon> {{ $t('Save changes') }}
+                </VBtn>
               </VCol>
             </VRow>
           </VForm>

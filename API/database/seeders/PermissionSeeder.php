@@ -276,5 +276,105 @@ class PermissionSeeder extends Seeder
         $attendance_save->display_name = 'បញ្ចូលវត្តមាន';
         $attendance_save->save();
 
+        $level = new Permission();
+        $level->name = 'level';
+        $level->display_name = 'កម្រិត';
+        $level->save();
+
+        $level_list = new Permission();
+        $level_list->parent_id = $level->id;
+        $level_list->name = 'level_list';
+        $level_list->display_name = 'មើលកម្រិត';
+        $level_list->save();
+
+        $level_create = new Permission();
+        $level_create->parent_id = $level->id;
+        $level_create->name = 'level_create';
+        $level_create->display_name = 'បង្កើតកម្រិត';
+        $level_create->save();
+
+        $level_edit = new Permission();
+        $level_edit->parent_id = $level->id;
+        $level_edit->name = 'level_edit';
+        $level_edit->display_name = 'កែប្រែកម្រិត';
+        $level_edit->save();
+
+        $level_delete = new Permission();
+        $level_delete->parent_id = $level->id;
+        $level_delete->name = 'level_delete';
+        $level_delete->display_name = 'លុបកម្រិត';
+        $level_delete->save();
+
+        $time = new Permission();
+        $time->name = 'time';
+        $time->display_name = 'ម៉ោង';
+        $time->save();
+
+        $time_list = new Permission();
+        $time_list->parent_id = $time->id;
+        $time_list->name = 'time_list';
+        $time_list->display_name = 'មើលម៉ោង';
+        $time_list->save();
+
+        $time_create = new Permission();
+        $time_create->parent_id = $time->id;
+        $time_create->name = 'time_create';
+        $time_create->display_name = 'បង្កើតម៉ោង';
+        $time_create->save();
+
+        $time_edit = new Permission();
+        $time_edit->parent_id = $time->id;
+        $time_edit->name = 'time_edit';
+        $time_edit->display_name = 'កែប្រែម៉ោង';
+        $time_edit->save();
+
+        $time_delete = new Permission();
+        $time_delete->parent_id = $time->id;
+        $time_delete->name = 'time_delete';
+        $time_delete->display_name = 'លុបម៉ោង';
+        $time_delete->save();
+
+        $room = new Permission();
+        $room->name = 'room';
+        $room->display_name = 'បន្ទប់';
+        $room->save();
+
+        $room_list = new Permission();
+        $room_list->parent_id = $room->id;
+        $room_list->name = 'room_list';
+        $room_list->display_name = 'មើលបន្ទប់';
+        $room_list->save();
+
+        $room_create = new Permission();
+        $room_create->parent_id = $room->id;
+        $room_create->name = 'room_create';
+        $room_create->display_name = 'បង្កើតបន្ទប់';
+        $room_create->save();
+
+        $room_edit = new Permission();
+        $room_edit->parent_id = $room->id;
+        $room_edit->name = 'room_edit';
+        $room_edit->display_name = 'កែប្រែបន្ទប់';
+        $room_edit->save();
+
+        $room_delete = new Permission();
+        $room_delete->parent_id = $room->id;
+        $room_delete->name = 'room_delete';
+        $room_delete->display_name = 'លុបបន្ទប់';
+        $room_delete->save();
+
+        $preference = new Permission();
+        $preference->name = 'preference';
+        $preference->display_name = 'ការកំណត់';
+        $preference->save();
+
+        $preference_settings = new Permission();
+        $preference_settings->parent_id = $preference->id;
+        $preference_settings->name = 'preference_settings';
+        $preference_settings->display_name = 'ការកំណត់';
+        $preference_settings->save();
+
+
+
     }
 }

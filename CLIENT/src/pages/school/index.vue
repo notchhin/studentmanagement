@@ -1,11 +1,13 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import _ from 'lodash'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/plugins/auth.module'
 const currentPage = ref(1)
 const headers = ['headers.id', 'headers.name', 'headers.short name', 'headers.action']
 const search = ref(null)
+const user = useAuthStore().user
 const form = reactive({
   filter: null,
 })
@@ -19,6 +21,14 @@ const loading = ref(false)
 const total = ref(null)
 const to = ref(null)
 const from = ref(null)
+
+const canCreateSchool = computed(() => {
+  return ['create school', 'create schools', 'school_create', 'schools_create'].some(permission => user.can(permission))
+})
+
+const canEditSchool = computed(() => {
+  return ['edit school', 'edit schools', 'school_edit', 'schools_edit'].some(permission => user.can(permission))
+})
 
 const q = () => {
   fetchData()
@@ -94,6 +104,7 @@ onMounted(() => {
               align="right"
             >
               <VBtn
+                v-if="canCreateSchool"
                 size="large"
                 prepend-icon="mdi-plus"
                 to="school/create"
@@ -157,6 +168,7 @@ onMounted(() => {
                 <td v-text="row.short_name" />
                 <td>
                   <v-btn
+                    v-if="canEditSchool"
                     @click="edit(row.id)"
                     color="white"
                     elevation="0"

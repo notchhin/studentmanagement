@@ -12,6 +12,7 @@ class LevelController extends Controller
 
     public function list(Request $request)
     {
+        abort_if(Gate::denies('level_list'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
 
         $result['status'] = 200;
 
@@ -32,7 +33,7 @@ class LevelController extends Controller
     public function store(Request $request)
     {
 
-        // abort_if(Gate::denies('teacher_create'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
+        abort_if(Gate::denies('level_create'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
 
         $result['status'] = 200;
 
@@ -53,7 +54,7 @@ class LevelController extends Controller
     public function show(Request $request)
     {
 
-        // abort_if(Gate::denies('teacher_edit'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
+        abort_if(Gate::denies('level_edit'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
 
         $result['status'] = 200;
 
@@ -74,7 +75,7 @@ class LevelController extends Controller
     public function update(Request $request)
     {
 
-        // abort_if(Gate::denies('teacher_edit'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
+        abort_if(Gate::denies('level_edit'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
 
         $result['status'] = 200;
 
@@ -84,6 +85,28 @@ class LevelController extends Controller
 
             if($d->update($request->all())) {
                 $result['message'] = "កែប្រែបានសម្រេច";
+            }
+
+        } catch (Throwable $e) {
+            $result['status'] = 201;
+            $result['message'] = $e->getMessage();
+        }
+
+        return response()->json($result);
+    }
+    public function delete(Request $request)
+    {
+
+        abort_if(Gate::denies('level_delete'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
+
+        $result['status'] = 200;
+
+        try {
+
+            $model = Level::findOrFail($request->id);
+
+            if ($model->delete()) {
+                $result['message'] = "លុបបានសម្រេច";
             }
 
         } catch (Throwable $e) {

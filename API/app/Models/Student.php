@@ -7,6 +7,7 @@ use App\Traits\UUIDs;
 use App\Traits\CreatedUpdatedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -54,6 +55,9 @@ class Student extends Model
         'g_gender',
         'g_phone_number',
         'g_detail',
+        'register_at',
+        'family_photo_path',
+        'family_status',
     ];
 
     public function scopeFilter($query, array $filters)
@@ -126,10 +130,26 @@ class Student extends Model
     public function setPhotoPathAttribute($value)
     {
         if (isset($value)) {
-            // remove old avatar on update
-            if ($this->photo_path) Storage::disk('public')->delete($this->photo_path);
-            $path = $value->store('student/' . date('FY'), ['disk' => 'public']);
-            $this->attributes['photo_path'] = $path;
+            if ($value instanceof UploadedFile) {
+                if ($this->photo_path) Storage::disk('public')->delete($this->photo_path);
+                $path = $value->store('student/' . date('FY'), ['disk' => 'public']);
+                $this->attributes['photo_path'] = $path;
+            } else {
+                $this->attributes['photo_path'] = $value;
+            }
+        }
+    }
+
+    public function setFamilyPhotoPathAttribute($value)
+    {
+        if (isset($value)) {
+            if ($value instanceof UploadedFile) {
+                if ($this->family_photo_path) Storage::disk('public')->delete($this->family_photo_path);
+                $path = $value->store('student/' . date('FY'), ['disk' => 'public']);
+                $this->attributes['family_photo_path'] = $path;
+            } else {
+                $this->attributes['family_photo_path'] = $value;
+            }
         }
     }
 
@@ -138,6 +158,7 @@ class Student extends Model
         parent::boot();
         static::deleting(function ($item) {
             if ($item->photo_path) Storage::disk('public')->delete($item->photo_path);
+            if ($item->family_photo_path) Storage::disk('public')->delete($item->family_photo_path);
         });
     }
 

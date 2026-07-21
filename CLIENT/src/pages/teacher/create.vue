@@ -31,20 +31,20 @@ const sexs = ref([
   },
 ])
 
-// // const positions = ref([
-//   {
-//     id: 1,
-//     name: "គ្រូបង្រៀន",
-//   },
-//   {
-//     id: 2,
-//     name: "នាយករង",
-//   },
-//   {
-//     id: 3,
-//     name: "នាយក",
-//   },
-// ])
+const positions = ref([
+  {
+    id: 1,
+    name: "គ្រូបង្រៀន",
+  },
+  {
+    id: 2,
+    name: "នាយករង",
+  },
+  {
+    id: 3,
+    name: "នាយក",
+  },
+])
 
 const form = {
   code: null,
@@ -271,8 +271,11 @@ const submitHandler = async () => {
                 md="3"
                 cols="12"
               >
-                <VTextField
+                <VSelect
                   v-model="formDataLocal.position"
+                  :items="positions"
+                  item-title="name"
+                  item-value="id"
                   :label="$t('headers.occupation')"
                   :rules="[v => !!v || 'មុខដំណែង តម្រូវឱ្យបំពេញ']"
                 />

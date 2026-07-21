@@ -1,10 +1,11 @@
 <!-- កុំព្យូទ័រ -->
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/plugins/utilites'
 import { Printd } from 'printd'
-import { DataRankings, GradePlus, Result } from '@/helper/calculate-score'
+import * as XLSX from 'xlsx'
+import { DataRankings, Grade, Result } from '@/helper/calculate-score'
 const route = useRoute()
 const model = ref({})
 const data = ref([])
@@ -25,6 +26,32 @@ const imgP = `
 const onPrint = () => {
   d.print(document.getElementById('table'), [imgP])
 }
+
+const exportToXlsx = () => {
+  const worksheetData = data.value.map((ret, index) => ({
+    No: index + 1,
+    Name: `${ret.last_name} ${ret.first_name}`,
+    Sex: ret.gender == 1 ? 'ប្រុស' : 'ស្រី',
+    Att: ret.att ?? 0,
+    Quiz: ret.quiz ?? 0,
+    HW: ret.hw ?? 0,
+    PP: ret.pp ?? 0,
+    PC: ret.pc ?? 0,
+    Mid: ret.t_mid ?? 0,
+    Final: ret.t_final ?? 0,
+    Total: ret.total ?? 0,
+    Ave: ((ret.att ?? 0) + (ret.hw ?? 0) + (ret.quiz ?? 0) + (ret.pp ?? 0) + (ret.pc ?? 0) + (ret.t_mid ?? 0)) / 6,
+    Rank: ret.rank ?? 0,
+    Grade: Grade(ret.total ?? 0),
+    Result: ret.total >= 60 ? 'Pass' : 'Fail',
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Scores')
+  XLSX.writeFile(workbook, `class-score3-${route.query.id || 'export'}.xlsx`)
+}
+
 const fetchData = () => {
   api
     .post('academic-classes-detail', {
@@ -52,6 +79,7 @@ onMounted(() => {
   fetchData()
 })
 </script>
+
 <template>
   <div>
     <VRow>
@@ -60,85 +88,93 @@ onMounted(() => {
         md="12"
         sm="12"
       >
-        <v-form
-          lazy-validation
+        <VForm
           ref="refForm"
-          @submit.prevent="submit()"
+          lazy-validation
         >
           <VCard :title="`${$t('class')} ${model.level?.level} ${$t('academic_year')} ${model.academic_year?.name}`">
             <VDivider />
-            <v-btn
+            <VBtn
               class="mt-5 mx-5"
               color="secondary"
               variant="outlined"
               @click="$router.go(-1)"
-              ><v-icon>mdi-arrow-back</v-icon>&nbsp; {{ $t('back') }}</v-btn
             >
+              <VIcon>mdi-arrow-back</VIcon>&nbsp; {{ $t('back') }}
+            </VBtn>
             <VCardText>
-              <v-row class="text-h6 font-weight-bold text-center my-5 mx-3">
-                <div style="width: 40%"></div>
-                <v-row style="width: 60%">
-                  <!-- <div>
-                    
-                  </div> -->
-                  <v-spacer />
+              <VRow class="text-h6 font-weight-bold text-center mx-3">
+                <div style="width: 40%" />
+                <VRow style="width: 60%">
+                  <VSpacer />
                   <div>
-                    <v-btn
+                    <VBtn
                       flat
                       color="white"
                       @click="onPrint"
-                      ><v-icon color="grey">mdi-printer</v-icon></v-btn
                     >
+                      <VIcon color="grey">
+                        mdi-printer
+                      </VIcon>
+                    </VBtn>
+                    <VBtn
+                      flat
+                      color="white"
+                      @click="exportToXlsx"
+                    >
+                      <VIcon color="grey">
+                        mdi-file-excel
+                      </VIcon>
+                    </VBtn>
                   </div>
-                </v-row>
-              </v-row>
+                </VRow>
+              </VRow>
               <table
+                id="table"
                 style="
-                  width: 100%;
+                  width: 98%;
                   font-family: Khmer OS Battambang;
                   border-collapse: collapse;
                   padding: 5px;
                   color: black;
                 "
-                id="table"
-                class="mt-5"
               >
                 <colgroup>
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
-                  <col width="5%" />
+                  <col width="2%">
+                  <col width="8%">
+                  <col width="8%">
+                  <col width="8%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
+                  <col width="5%">
                 </colgroup>
                 <thead>
                   <tr>
                     <td>
                       <VRow>
-                        <VCol style="margin: 0 90%"
-                          ><v-img
+                        <VCol style="margin: 0 90%">
+                          <VImg
                             src="/src/assets/images/logo_school.png"
                             :width="100"
-                          ></v-img>
+                          />
                         </VCol>
                       </VRow>
                     </td>
 
-                    <td colspan="14"></td>
+                    <td colspan="14" />
                     <td
                       colspan="8"
                       valign="bottom"
@@ -167,8 +203,8 @@ onMounted(() => {
                     >
                       សាលារៀនជំនួយដល់កុមារកម្ពុជា
                     </td>
-                    <td colspan="3"></td>
-                    <td colspan="8"></td>
+                    <td colspan="3" />
+                    <td colspan="8" />
                     <td
                       colspan="8"
                       valign="center"
@@ -197,8 +233,8 @@ onMounted(() => {
                     >
                       Schools Helping Cambodian Children
                     </td>
-                    <td colspan="3"></td>
-                    <td colspan="8"></td>
+                    <td colspan="3" />
+                    <td colspan="8" />
                     <td
                       colspan="8"
                       valign="center"
@@ -209,7 +245,7 @@ onMounted(() => {
                         font-size: 16px;
                         font-family: 'Times New Roman', Times, serif;
                       "
-                    ></td>
+                    />
                   </tr>
                   <tr>
                     <td
@@ -221,7 +257,7 @@ onMounted(() => {
                         font-size: 16px;
                         font-family: 'Times New Roman', Times, serif;
                       "
-                    ></td>
+                    />
                     <td
                       colspan="12"
                       style="
@@ -233,8 +269,10 @@ onMounted(() => {
                       "
                     >
                       {{ model.academic_year?.name }}
-                      <!-- {{ exam_month.id != 0 ? 'ខែ' : '' }}{{ exam_month.name
-                      }}{{ params_s ? 'លើកទី' + params_s : '' }} -->
+                      <!--
+                        {{ exam_month.id != 0 ? 'ខែ' : '' }}{{ exam_month.name
+                        }}{{ params_s ? 'លើកទី' + params_s : '' }} 
+                      -->
                     </td>
                   </tr>
 
@@ -286,97 +324,107 @@ onMounted(() => {
                       &nbsp; Time &nbsp;: {{ model.time?.time }}
                     </td>
                   </tr>
-                  <tr style="font-family: 'Times New Roman', Times, serif; font-size: 17px">
+                  <tr style="font-family: 'Times New Roman', Times, serif; font-size: 16px">
                     <th
                       rowspan="2"
-                      style="border: 1px solid black; padding: 5px"
+                      style="border: 1px solid black; padding: 4px 2px; min-width: 24px; width: 24px"
                     >
                       N<sup>o</sup>
                     </th>
                     <th
                       rowspan="2"
                       style="border: 1px solid black; padding: 5px"
-                      colspan="6"
+                      colspan="3"
                     >
-                      Student Name
+                      Name
                     </th>
                     <th
                       rowspan="2"
-                      colspan="2"
                       style="border: 1px solid black; padding: 5px"
                     >
                       Sex
                     </th>
                     <th
+                      colspan="8"
+                      style="border: 1px solid black; padding: 5px"
+                    >
+                      Score
+                    </th>
+                    <th
                       rowspan="2"
-                      colspan="1"
-                      style="border: 1px solid black; padding: 5px"
+                      style="border: 1px solid black; padding: 5px; min-width: 90px; width: 90px; text-align: center;"
                     >
-                      Attendance
+                      Ave.
                     </th>
                     <th
-                      rowspan="1"
-                      colspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      Attitude
-                    </th>
-                    <th
-                      rowspan="1"
-                      colspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      HW & Qu
-                    </th>
-                    <th
-                      rowspan="1"
-                      colspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      Mid-Term
-                    </th>
-                    <th
-                      colspan="1"
-                      rowspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      Final
-                    </th>
-                    <th
-                      colspan="1"
-                      rowspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      Total
-                    </th>
-                    <th
-                      colspan="1"
-                      rowspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                    >
-                      Averange
-                    </th>
-
-                    <th
-                      colspan="1"
-                      style="border: 1px solid black; padding: 5px"
-                      rowspan="1"
-                    >
-                      Result
-                    </th>
-                    <th
-                      colspan="1"
-                      rowspan="1"
-                      style="border: 1px solid black; padding: 5px"
+                      rowspan="2"
+                      style="border: 1px solid black; padding: 5px; min-width: 110px; width: 110px; text-align: center;"
                     >
                       Rank
                     </th>
                     <th
-                      colspan="1"
-                      rowspan="1"
-                      style="border: 1px solid black; padding: 5px"
+                      rowspan="2"
+                      style="border: 1px solid black; padding: 5px; min-width: 120px; width: 120px; text-align: center;"
                     >
                       Grade
+                    </th>
+                    
+                    <th
+                      rowspan="2"
+                      style="border: 1px solid black; padding: 5px; min-width: 120px; width: 120px; text-align: center;"
+                    >
+                      Pass/Fail
+                    </th>
+                  </tr>
+                  <tr>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      Att
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      Quiz
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      HW
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      PP
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      PC
+                    </th>
+                    
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      T.Mid
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      T.Final
+                    </th>
+                    <th
+                      style="border: 1px solid black; padding: 5px"
+                      colspan="1"
+                    >
+                      Total
                     </th>
                   </tr>
                 </thead>
@@ -385,99 +433,129 @@ onMounted(() => {
                     v-for="(ret, index) in data"
                     :key="index"
                   >
-                    <td style="text-align: center; border: 1px solid black; padding: 5px">
+                    <td style="text-align: center; border: 1px solid black; padding: 4px 2px; min-width: 24px; width: 24px;">
                       {{ index + 1 }}
                     </td>
                     <td
-                      colspan="6"
+                      colspan="3"
                       style="border: 1px solid black; padding: 5px"
                     >
                       {{ ret.last_name + ' ' + ret.first_name }}
                     </td>
-                    <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
-                      colspan="2"
-                    >
+                    <td style="text-align: center; border: 1px solid black; padding: 5px">
                       {{ ret.gender == 1 ? 'ប្រុស' : 'ស្រី' }}
                     </td>
-
                     <td
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.att }}
+                      {{ ret.att ?? 0 }}
                     </td>
                     <td
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.attitude }}
+                      {{ ret.quiz ?? 0 }}
                     </td>
                     <td
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.hw }}
+                      {{ ret.hw ?? 0 }}
                     </td>
                     <td
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.mid }}
+                      {{ ret.pp ?? 0 }}
                     </td>
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.final }}
+                      {{ ret.pc ?? 0 }}
+                    </td>
+                    
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
+                    >
+                      {{ ret.t_mid ?? 0 }}
                     </td>
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.total }}
+                      {{ ret.t_final ?? 0 }}
                     </td>
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.total / 10 }}
+                      {{ ret.total ?? 0 }}
                     </td>
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px; min-width: 90px; width: 90px;"
                     >
-                      {{ Result(ret.total) }}
+                      {{ ((ret.att + ret.hw + ret.quiz + ret.pp + ret.pc + ret.t_mid) / 6).toFixed(2) }}
                     </td>
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px; min-width: 110px; width: 110px;"
                     >
-                      {{ ret.rank }}
+                      {{ ret.rank ?? 0 }}
                     </td>
-
                     <td
-                      style="text-align: center; border: 1px solid black; padding: 5px"
                       colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px; min-width: 120px; width: 120px;"
                     >
-                      {{ GradePlus(ret.total) }}
+                      {{ Grade(ret.total ?? 0) }}
+                    </td>
+                    
+                    <td
+                      colspan="1"
+                      style="text-align: center; border: 1px solid black; padding: 5px; min-width: 120px; width: 120px;"
+                    >
+                      {{ (ret.total >= 60 ? 'Pass' : 'Fail') }}
                     </td>
                   </tr>
                   <td
                     style="height: 45px"
-                    colspan="7"
-                  ></td>
-                  <td colspan="2">
+                    colspan="8"
+                  />
+                  <td colspan="3">
                     <table>
                       <div
                         style="
-                          width: 250%;
+                          width: 150%;
                           height: 2vh;
                           font-weight: bold;
                           font-size: 16px;
                           font-family: 'Times New Roman', Times, serif;
                         "
-                      ></div>
+                      >
+                        <div style="padding: 0 5% 0 5%; border: 1px solid">
+                          <tr>
+                            <td>Note:</td>
+                          </tr>
+                          <tr>
+                            <td>1. A = 90-100</td>
+                          </tr>
+                          <tr>
+                            <td>2. B = 80-89</td>
+                          </tr>
+                          <tr>
+                            <td>3. C = 70-79</td>
+                          </tr>
+                          <tr>
+                            <td>4. D = 60-69</td>
+                          </tr>
+                          <tr>
+                            <td>5. F = 0-59</td>
+                          </tr>
+                        </div>
+                      </div>
                     </table>
                   </td>
                   <tr>
@@ -505,7 +583,7 @@ onMounted(() => {
                     >
                       Seen and approved
                     </td>
-                    <td colspan="12"></td>
+                    <td colspan="12" />
                     <td
                       style="
                         text-align: center;
@@ -533,7 +611,7 @@ onMounted(() => {
                     <td
                       style="text-align: center"
                       colspan="12"
-                    ></td>
+                    />
                     <td
                       style="
                         text-align: center;
@@ -541,7 +619,7 @@ onMounted(() => {
                         font-size: 16px;
                         font-family: 'Times New Roman', Times, serif;
                       "
-                      colspan="15"
+                      colspan="16"
                     >
                       TEACHER
                     </td>
@@ -550,7 +628,7 @@ onMounted(() => {
                     <td
                       style="text-align: center"
                       colspan="10"
-                    ></td>
+                    />
                     <td
                       style="text-align: center; font-family: Khmer OS Battambang"
                       colspan="10"
@@ -560,36 +638,37 @@ onMounted(() => {
                   </tr>
                   <tr>
                     <td
-                      style="text-align: center; height: 100px"
+                      style="text-align: center; height: 190px"
                       colspan="15"
-                    ></td>
+                    />
                     <td
                       style="
-                        text-align: center;
+                        text-align: right;
                         font-weight: bold;
-                        font-size: 16px;
+                        font-size: 15px;
                         font-family: 'Siemreap', Times, serif;
-                        height: 50px;
+                        height: 220px;
                       "
                       colspan="10"
+                      class="mt-12"
                     >
                       {{ model.teacher?.name }}
-                      <!-- Smey Need You -->
                     </td>
                     <td
                       style="text-align: center"
                       colspan="2"
-                    ></td>
+                    />
                   </tr>
                 </tbody>
               </table>
             </VCardText>
           </VCard>
-        </v-form>
+        </VForm>
       </VCol>
     </VRow>
   </div>
 </template>
+
 <route lang="yaml">
 meta:
   title: Score
@@ -597,3 +676,59 @@ meta:
   subject: Auth
   active: 'academic-class'
 </route>
+
+<style>
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
+
+@media print {
+  html,
+  body,
+  #table {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+  }
+
+  table#table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 10px !important;
+    font-family: 'Times New Roman', Times, serif !important;
+  }
+
+  table#table th,
+  table#table td {
+    padding: 4px !important;
+    line-height: 1.1 !important;
+    vertical-align: middle !important;
+    border: 1px solid black !important;
+    white-space: nowrap !important;
+  }
+
+  table#table th {
+    font-size: 10px !important;
+  }
+
+  table#table td {
+    font-size: 9px !important;
+  }
+
+  #table td,
+  #table th {
+    overflow: visible !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+}
+</style>

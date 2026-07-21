@@ -14,6 +14,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentHistory;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimeController;
 use App\Http\Controllers\UserController;
@@ -104,6 +105,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('students-show', [StudentController::class, 'show']);
     Route::post('students-update', [StudentController::class, 'update']);
     Route::post('students-delete', [StudentController::class, 'delete']);
+    Route::post('students-history-list', [StudentHistory::class, 'list']);
 
     Route::post('exam-form', [ExamController::class, 'form']);
     Route::post('exam-save', [ExamController::class, 'save']);
@@ -117,6 +119,7 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('level-list', [LevelController::class, 'list']);
     Route::post('level-show', [LevelController::class, 'show']);
     Route::post('level-update', [LevelController::class, 'update']);
+    Route::post('level-delete', [LevelController::class, 'delete']);
 
 
     Route::post('blacklist-list', [BlackListController::class, 'list']);
@@ -129,9 +132,11 @@ Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::post('time-list', [TimeController::class, 'list']);
     Route::post('time-show', [TimeController::class, 'show']);
     Route::post('time-update', [TimeController::class, 'update']);
+    Route::post('time-delete', [TimeController::class, 'delete']);
 
     Route::post('room-create', [RoomController::class, 'store']);
     Route::post('room-list', [RoomController::class, 'list']);
     Route::post('room-show', [RoomController::class, 'show']);
     Route::post('room-update', [RoomController::class, 'update']);
+    Route::post('room-delete', [RoomController::class, 'delete']);
 });

@@ -1,8 +1,9 @@
 <script setup>
 import api from '@/plugins/utilites'
-import { onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import _ from 'lodash'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/plugins/auth.module'
 const currentPage = ref(1)
 const headers = ['room', 'headers.action']
 
@@ -21,6 +22,19 @@ const total = ref(null)
 const to = ref(null)
 const from = ref(null)
 const search = ref(null)
+const user = useAuthStore().user
+
+const canCreateRoom = computed(() => {
+  return ['create room', 'create_rooms', 'room_create'].some(permission => user.can(permission))
+})
+
+const canEditRoom = computed(() => {
+  return ['edit room', 'edit_rooms', 'room_edit'].some(permission => user.can(permission))
+})
+
+const canDeleteRoom = computed(() => {
+  return ['delete room', 'delete_rooms', 'room_delete'].some(permission => user.can(permission))
+})
 
 const q = () => {
   fetchData()
@@ -45,7 +59,27 @@ const fetchData = () => {
       loading.value = false
     })
 }
+const onDelete = id => {
+  confirmDialog.value = true
+  role_id.value = id
+}
 
+
+const confirmDelete = () => {
+  if (!role_id.value) return
+
+  api
+    .post('room-delete', {
+      id: role_id.value,
+    })
+    .then(() => {
+      fetchData()
+    })
+    .finally(() => {
+      confirmDialog.value = false
+      role_id.value = ''
+    })
+}
 watch(currentPage, (newValue, oldValue) => {
   if (newValue) {
     fetchData()
@@ -63,8 +97,8 @@ onMounted(() => {
 
 <template>
   <div>
-    <v-row>
-      <v-col
+    <VRow>
+      <VCol
         cols="12"
         md="6"
         sm="12"
@@ -74,7 +108,7 @@ onMounted(() => {
           class="mb-5"
         >
           <VDivider />
-          <VCard-text>
+          <VCardText>
             <VRow justify="start">
               <VCol
                 cols="12"
@@ -86,19 +120,20 @@ onMounted(() => {
                   append-inner-icon="mdi-search"
                   @keypress.enter="q"
                   @click:append-inner="q"
-                  @update:modelValue="fetchData"
+                  @update:model-value="fetchData"
                 />
               </VCol>
               <VCol
                 cols="12"
                 md="4"
-              ></VCol>
-              <v-col
+              />
+              <VCol
                 cols="6"
                 md="4"
                 class="text-end"
               >
                 <VBtn
+                  v-if="canCreateRoom"
                   size="large"
                   variant="elevated"
                   prepend-icon="mdi-plus"
@@ -106,8 +141,8 @@ onMounted(() => {
                   to="room/create"
                 >
                   {{ $t('add new') }}
-                </VBtn></v-col
-              >
+                </VBtn>
+              </VCol>
             </VRow>
 
             <VTable
@@ -132,17 +167,19 @@ onMounted(() => {
                   v-if="loading"
                   :colspan="headers.length"
                 >
-                  <v-progress-linear
+                  <VProgressLinear
                     indeterminate
                     class="line"
-                  ></v-progress-linear>
+                  />
                 </td>
                 <tr v-if="loading && data.length === 0">
                   <td
                     :colspan="headers.length"
                     class="text-center"
                   >
-                    <div class="text-subtitle-2">{{ $t('in progress') }}</div>
+                    <div class="text-subtitle-2">
+                      {{ $t('in progress') }}
+                    </div>
                   </td>
                 </tr>
                 <tr v-if="!loading && data.length === 0">
@@ -159,28 +196,51 @@ onMounted(() => {
                 >
                   <td v-text="row.room" />
                   <td>
-                    <v-btn
-                      @click="show(row.id)"
-                      color="white"
-                      elevation="0"
-                      flat
-                    >
-                      <v-icon color="success">mdi-square-edit-outline</v-icon>
-                      <v-tooltip
-                        activator="parent"
-                        location="bottom"
+                    <div class="d-flex align-center gap-2">
+                      <VBtn
+                        v-if="canEditRoom"
+                        color="white"
+                        elevation="0"
+                        flat
+                        @click="show(row.id)"
                       >
-                        {{ $t('edit') }}
-                      </v-tooltip>
-                    </v-btn>
+                        <VIcon color="success">
+                          mdi-square-edit-outline
+                        </VIcon>
+                        <VTooltip
+                          activator="parent"
+                          location="bottom"
+                        >
+                          {{ $t('edit') }}
+                        </VTooltip>
+                      </VBtn>
+
+                      <VBtn
+                        v-if="canDeleteRoom"
+                        color="white"
+                        elevation="0"
+                        flat
+                        @click="onDelete(row.id)"
+                      >
+                        <VIcon color="error">
+                          mdi-delete-outline
+                        </VIcon>
+                        <VTooltip
+                          activator="parent"
+                          location="bottom"
+                        >
+                          {{ $t('delete') }}
+                        </VTooltip>
+                      </VBtn>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </VTable>
-          </VCard-text>
-          <VCard-actions>
-            <v-row>
-              <v-col
+          </VCardText>
+          <VCardActions>
+            <VRow>
+              <VCol
                 cols="12"
                 lg="6"
                 md="12"
@@ -188,9 +248,9 @@ onMounted(() => {
                 xs="12"
                 class="mt-3 text-center"
               >
-                <span v-if="!loading">{{ from }} - {{ to }} {{ total === 0 ? '' : `of ${total}` }}</span></v-col
-              >
-              <v-col
+                <span v-if="!loading">{{ from }} - {{ to }} {{ total === 0 ? '' : `of ${total}` }}</span>
+              </VCol>
+              <VCol
                 cols="12"
                 lg="6"
                 md="12"
@@ -203,14 +263,39 @@ onMounted(() => {
                   :length="numPages"
                   :total-visible="10"
                 />
-              </v-col>
-            </v-row>
-          </VCard-actions>
+              </VCol>
+            </VRow>
+          </VCardActions>
         </VCard>
-      </v-col>
-    </v-row>
+      </VCol>
+    </VRow>
+
+    <VDialog
+      v-model="confirmDialog"
+      style="max-width: 500px"
+      persistent
+    >
+      <VCard>
+        <VCardText> {{ $t('delete_room') }} </VCardText>
+        <VCardActions class="ml-auto">
+          <VBtn
+            color="error"
+            @click="confirmDialog = false"
+          >
+            {{ $t('no') }}
+          </VBtn>
+          <VBtn
+            color="success"
+            @click="confirmDelete"
+          >
+            {{ $t('yes') }}
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </div>
 </template>
+
 <route lang="yaml">
 meta:
   title: Room

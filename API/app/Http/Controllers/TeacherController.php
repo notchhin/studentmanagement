@@ -22,7 +22,9 @@ class TeacherController extends Controller
         try {
 
             $teachers = Teacher::select('id', 'code', 'name', 'sex', 'phone', 'dob', 'position')
-                ->filter(['search' => $request->search])->latest()->paginate($request->perPage);
+                ->filter(['search' => $request->search])
+                ->orderByRaw('CAST(code AS UNSIGNED) ASC')
+                ->paginate($request->perPage);
 
             $result['data'] = $teachers;
         } catch (Throwable $e) {
@@ -83,10 +85,9 @@ class TeacherController extends Controller
 
             $teacher = Teacher::findOrFail($request->id);
 
-            if($teacher->update($request->validated())) {
+            if ($teacher->update($request->validated())) {
                 $result['message'] = "កែប្រែបានសម្រេច";
             }
-
         } catch (Throwable $e) {
             $result['status'] = 201;
             $result['message'] = $e->getMessage();
@@ -112,10 +113,9 @@ class TeacherController extends Controller
 
             $result['message'] = $delete['message'];
 
-            if(!$delete['status']) {
+            if (!$delete['status']) {
                 $result['status'] = 201;
             }
-
         } catch (Throwable $e) {
             $result['status'] = 201;
             $result['message'] = $e->getMessage();
@@ -123,5 +123,4 @@ class TeacherController extends Controller
 
         return response()->json($result);
     }
-
 }

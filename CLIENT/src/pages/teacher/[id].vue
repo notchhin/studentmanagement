@@ -34,20 +34,20 @@ const sexs = ref([
   },
 ])
 
-// const positions = ref([
-//   {
-//     id: 1,
-//     name: "គ្រូបង្រៀន",
-//   },
-//   {
-//     id: 2,
-//     name: "នាយករង",
-//   },
-//   {
-//     id: 3,
-//     name: "នាយក",
-//   },
-// ])
+const positions = ref([
+  {
+    id: 1,
+    name: "គ្រូបង្រៀន",
+  },
+  {
+    id: 2,
+    name: "នាយករង",
+  },
+  {
+    id: 3,
+    name: "នាយក",
+  },
+])
 
 const form = {
   id: route.params.id,
@@ -139,6 +139,13 @@ onMounted(() => {
       Object.assign(formDataLocal.value, { ...res.data?.model })
       formDataLocal.value.photo_path = null
       localImage.value = res.data.model.photo_path
+      // Convert position name to ID if needed
+      if (formDataLocal.value.position && typeof formDataLocal.value.position === 'string') {
+        const positionObj = positions.value.find(p => p.name === formDataLocal.value.position)
+        if (positionObj) {
+          formDataLocal.value.position = positionObj.id
+        }
+      }
     })
   }
 })
@@ -264,6 +271,7 @@ onMounted(() => {
                   :label="$t('Sex')"
                   :rules="[v => !!v || 'ភេទ តម្រូវឱ្យបំពេញ']"
                 />
+                
               </VCol>
               <VCol
                 md="3"
@@ -297,8 +305,11 @@ onMounted(() => {
                 md="3"
                 cols="12"
               >
-                <VTextField
+                <VSelect
                   v-model="formDataLocal.position"
+                  :items="positions"
+                  item-title="name"
+                  item-value="id"
                   :label="$t('headers.occupation')"
                   :rules="[v => !!v || 'មុខដំណែង តម្រូវឱ្យបំពេញ']"
                 />

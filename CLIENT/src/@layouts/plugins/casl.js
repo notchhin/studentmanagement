@@ -12,6 +12,13 @@ import ability from "@/plugins/casl/ability";
  * @param {String} subject CASL Subject // https://casl.js.org/v4/en/guide/intro#basics
  */
 export const can = (action, subject) => {
+  if (!action && !subject) return true;
+
+  const authStore = useAuthStore();
+  const user = authStore?.user;
+
+  if (user?.can) return user.can(action, subject);
+
   const vm = getCurrentInstance();
 
   if (!vm) return false;
@@ -35,14 +42,14 @@ export const can = (action, subject) => {
  */
 export const canViewNavMenuGroup = (item) => {
   const hasAnyVisibleChild = item.children.some((i) =>
-    can(i.action, i.subject)
+    can(i.permission || i.action, i.subject)
   );
 
   // If subject and action is defined in item => Return based on children visibility (Hide group if no child is visible)
   // Else check for ability using provided subject and action along with checking if has any visible child
-  if (!(item.action && item.subject)) return hasAnyVisibleChild;
+  if (!(item.action && item.subject) && !item.permission) return hasAnyVisibleChild;
 
-  return can(item.action, item.subject) && hasAnyVisibleChild;
+  return can(item.permission || item.action, item.subject) && hasAnyVisibleChild;
 };
 
 // export const canViewNavMenuGroup = (item) => {

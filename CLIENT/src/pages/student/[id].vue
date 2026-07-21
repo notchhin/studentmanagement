@@ -6,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 import constant from '@/constants'
 import { useAuthStore } from '@/plugins/auth.module'
 import User from '../../class/User'
+import { VAlert, VCardItem, VExpandTransition, VFileInput } from 'vuetify/components'
 
 const store = useAuthStore()
 
@@ -13,10 +14,54 @@ const user = computed(() => {
   const data = {
     user: store?._user,
   }
+  
   return new User(data)
 })
+function setFamilyPhotoPreview(file) {
+  if (familyPhotoPreviewUrl) {
+    URL.revokeObjectURL(familyPhotoPreviewUrl)
+    familyPhotoPreviewUrl = null
+  }
 
+  if (file) {
+    familyPhotoPreviewUrl = URL.createObjectURL(file)
+    familyPhotoPreview.value = familyPhotoPreviewUrl
+  } else {
+    familyPhotoPreview.value = null
+  }
+}
+
+function onFilesSelected(files) {
+  fileErrors.value = []
+
+  // VFileInput can emit a single File OR an array depending on version
+  const fileArray = Array.isArray(files) ? files : files ? [files] : []
+  const file = fileArray[0] || null
+
+  if (file) {
+    const sizeOk = file.size / 1024 / 1024 <= maxSizeMB
+    if (!sizeOk) {
+      fileErrors.value.push(`${file.name} exceeds ${maxSizeMB}MB`)
+      formDataLocal.value.family_photo_path = []
+      existingFamilyPhotoPath.value = null
+      setFamilyPhotoPreview(null)
+    } else {
+      formDataLocal.value.family_photo_path = [file]
+      existingFamilyPhotoPath.value = null
+      setFamilyPhotoPreview(file)
+    }
+  } else {
+    formDataLocal.value.family_photo_path = []
+    setFamilyPhotoPreview(null)
+  }
+}
 const submitting = ref(false)
+const fileErrors = ref([])
+const acceptedTypes = '.jpg,.jpeg,.png'
+const maxSizeMB = 5
+const familyPhotoPreview = ref(null)
+let familyPhotoPreviewUrl = null
+const existingFamilyPhotoPath = ref(null)
 const additional_image = ref(avatar1)
 const refForm = ref(null)
 const router = useRouter()
@@ -33,6 +78,27 @@ const accountStatuses = ref([
   { id: 1, name: 'Active' },
   { id: 0, name: 'Inactive' },
 ])
+const family_status = ref([
+  { id: 1, name: 'ក្រីក្រ' },
+  { id: 2, name: 'ក្រីក្រ​ខ្លាំង' },
+  { id: 3, name: 'ក្រីក្រមធ្យម' },
+  { id: 4, name: 'មធ្យម' },
+])
+
+const normalizeSelectValues = (model = {}) => {
+  const converted = { ...model }
+  const numericFields = ['gender', 'student_status', 'status', 'g_gender', 'family_status']
+
+  numericFields.forEach(field => {
+    if (converted[field] !== null && converted[field] !== undefined && converted[field] !== '') {
+      const parsed = Number(converted[field])
+      converted[field] = Number.isNaN(parsed) ? converted[field] : parsed
+    }
+  })
+
+  return converted
+}
+
 const form = {
   id: route.params.id,
   code: null,
@@ -72,19 +138,43 @@ const form = {
   g_detail: null,
   photo_path: null,
   status: 1,
+  family_photo_path: [],
+  family_status: null,
 }
 const refInputEl = ref()
 const formDataLocal = ref(structuredClone(form))
 
 const resetForm = () => {
   formDataLocal.value = structuredClone(form)
+  existingFamilyPhotoPath.value = null
+  setFamilyPhotoPreview(null)
 }
 const changeAvatar = file => {
   const fileReader = new FileReader()
   const { files } = file.target
+  fileErrors.value = []
+
   if (files && files.length) {
-    fileReader.readAsDataURL(files[0])
-    formDataLocal.value.photo_path = files[0]
+    const selectedFile = files[0]
+    const fileTypeOk = ['image/jpeg', 'image/jpg', 'image/png'].includes(selectedFile.type)
+    const sizeOk = selectedFile.size / 1024 / 1024 <= maxSizeMB
+
+    if (!fileTypeOk) {
+      fileErrors.value.push('The selected file must be a JPG or PNG image.')
+      formDataLocal.value.photo_path = null
+      
+      return
+    }
+
+    if (!sizeOk) {
+      fileErrors.value.push(`${selectedFile.name} exceeds ${maxSizeMB}MB`)
+      formDataLocal.value.photo_path = null
+      
+      return
+    }
+
+    fileReader.readAsDataURL(selectedFile)
+    formDataLocal.value.photo_path = selectedFile
     fileReader.onload = () => {
       if (typeof fileReader.result === 'string') additional_image.value = fileReader.result
     }
@@ -97,17 +187,28 @@ const resetAvatar = () => {
   localImage.value = null
   formDataLocal.value.photo_path = null
 }
+
 // edit student form
 const submitHandler = async () => {
   const { valid } = await refForm.value?.validate()
   if (valid) {
     submitting.value = true
     let formData = new FormData()
-    console.log(formDataLocal.value.photo_path)
+
     Object.keys(formDataLocal.value).forEach(key => {
-      if (formDataLocal.value[key] !== null && formDataLocal.value[key] !== undefined) {
-        if(key !== 'photo_path') 
-          formData.append(key, formDataLocal.value[key])
+      const value = formDataLocal.value[key]
+      if (value === null || value === undefined) return
+
+      if (key === 'family_photo_path') {
+        if (Array.isArray(value)) {
+          if (value.length) {
+            formData.append(key, value[0])
+          }
+        } else {
+          formData.append(key, value)
+        }
+      } else if (key !== 'photo_path') {
+        formData.append(key, value)
       }
     })
     
@@ -117,10 +218,10 @@ const submitHandler = async () => {
 
     api
       .post('students-update', formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       .then(() => {
         router.push('/student')
       })
@@ -135,7 +236,12 @@ const localImage = ref()
 onMounted(() => {
   if (route.params.id) {
     api.post(`students-show`, { id: route.params.id }).then(res => {
-      Object.assign(formDataLocal.value, { ...res.data?.model })
+      const normalizedModel = normalizeSelectValues(res.data?.model || {})
+      if (!Array.isArray(normalizedModel.family_photo_path)) {
+        existingFamilyPhotoPath.value = normalizedModel.family_photo_path || null
+        normalizedModel.family_photo_path = []
+      }
+      Object.assign(formDataLocal.value, normalizedModel)
       formDataLocal.value.photo_path = null
       localImage.value = res.data.model.photo_path
     })
@@ -173,10 +279,10 @@ onMounted(() => {
                 ref="refInputEl"
                 type="file"
                 name="file"
-                accept=".jpeg,.png,.jpg,GIF"
+                accept=".jpg,.jpeg,.png"
                 hidden
                 @input="changeAvatar"
-              />
+              >
               <VBtn
                 type="reset"
                 color="error"
@@ -190,7 +296,20 @@ onMounted(() => {
                 />
               </VBtn>
             </div>
-            <p class="text-body-1 mb-0">Allowed JPG, GIF or PNG. Max size of 800K</p>
+            <div
+              v-if="fileErrors.length"
+              class="text-error text-caption mt-2"
+            >
+              <div
+                v-for="(err, i) in fileErrors"
+                :key="i"
+              >
+                {{ err }}
+              </div>
+            </div>
+            <p class="text-body-1 mb-0">
+              Allowed JPG or PNG. Max size of 5MB
+            </p>
           </div>
         </VCardText>
 
@@ -337,6 +456,17 @@ onMounted(() => {
                     :label="$t('status')"
                   />
                 </VCol>
+                <VCol
+                  md="2"
+                  cols="12"
+                >
+                  <VTextField
+                    v-model="formDataLocal.register_at"
+                    :label="$t('register_at')"
+                    type="date"
+                    :rules="[v => !!v || 'ថ្ងៃខែចុះឈ្មោះ តម្រូវឱ្យបំពេញ']"
+                  />
+                </VCol>
 
                 <VCol
                   md="12"
@@ -439,7 +569,9 @@ onMounted(() => {
                 >
                   <VCard>
                     <div class="mx-3 my-4">
-                      <h3 class="mb-5">{{ $t('father_infor') }}</h3>
+                      <h3 class="mb-5">
+                        {{ $t('father_infor') }}
+                      </h3>
                       <VRow>
                         <VCol
                           md="6"
@@ -489,7 +621,9 @@ onMounted(() => {
                 >
                   <VCard>
                     <div class="mx-3 my-4">
-                      <h3 class="mb-5">{{ $t('mother_infor') }}</h3>
+                      <h3 class="mb-5">
+                        {{ $t('mother_infor') }}
+                      </h3>
                       <VRow>
                         <VCol
                           md="6"
@@ -537,7 +671,9 @@ onMounted(() => {
 
               <VCard class="my-6">
                 <div class="mx-3 my-4">
-                  <h3 class="mb-5">{{ $t('guardian') }}</h3>
+                  <h3 class="mb-5">
+                    {{ $t('guardian') }}
+                  </h3>
                   <VRow>
                     <VCol
                       md="3"
@@ -599,6 +735,91 @@ onMounted(() => {
                   </VRow>
                 </div>
               </VCard>
+              <VCard
+                class="my-6"
+                variant="outlined"
+              >
+                <VCardItem>
+                  <template #prepend>
+                    <VIcon
+                      icon="ri-file-user-line"
+                      size="24"
+                      class="me-1"
+                    />
+                  </template>
+                  <VCardTitle>{{ $t('family_status') }}</VCardTitle>
+                </VCardItem>
+
+                <VDivider />
+
+                <VCardText class="pt-5">
+                  <VRow>
+                    <VCol
+                      cols="12"
+                      md="8"
+                    >
+                      <VFileInput
+                        :model-value="formDataLocal.family_photo_path"
+                        density="comfortable"
+                        variant="outlined"
+                        clearable
+                        prepend-icon=""
+                        prepend-inner-icon="ri-upload-2-line"
+                        :accept="acceptedTypes"
+                        :label="$t('upload_files')"
+                        :placeholder="$t('drop_files_here')"
+                        persistent-hint
+                        @update:model-value="onFilesSelected"
+                      />
+
+                      <div
+                        v-if="familyPhotoPreview || existingFamilyPhotoPath"
+                        class="mt-4"
+                      >
+                        <img
+                          v-if="familyPhotoPreview"
+                          :src="familyPhotoPreview"
+                          alt="Family photo preview"
+                          class="family-photo-preview rounded"
+                          style="max-width: 200px; max-height: 200px; object-fit: contain;"
+                        >
+                      </div>
+
+                      <VExpandTransition>
+                        <div
+                          v-if="fileErrors.length"
+                          class="mt-2"
+                        >
+                          <VAlert
+                            v-for="(err, i) in fileErrors"
+                            :key="i"
+                            type="error"
+                            variant="tonal"
+                            density="compact"
+                            class="mb-1"
+                          >
+                            {{ err }}
+                          </VAlert>
+                        </div>
+                      </VExpandTransition>
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="4"
+                    >
+                      <VTextField
+                        v-model="formDataLocal.family_status"
+                        :items="family_status"
+                        item-title="name"
+                        item-value="id"
+                        :label="$t('Family Status')"
+                        :rules="[v => !!v || 'ស្ថានភាពគ្រួសារ តម្រូវឱ្យបំពេញ']"
+                      />
+                    </VCol>
+                  </VRow>
+                </VCardText>
+              </VCard>
 
               <VRow>
                 <!-- 👉 Form Actions -->
@@ -611,7 +832,9 @@ onMounted(() => {
                     :loading="submitting"
                     color="success"
                   >
-                    <VIcon class="me-2">mdi-content-save-all</VIcon>
+                    <VIcon class="me-2">
+                      mdi-content-save-all
+                    </VIcon>
                     {{ $t('Save changes') }}
                   </VBtn>
 

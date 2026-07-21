@@ -27,7 +27,7 @@ class ExamController extends Controller
 
             $exams = Study::leftJoin('exams', 'studies.student_id', 'exams.student_id')
                 ->join('students', 'studies.student_id', 'students.id')
-                ->select('studies.student_id', 'students.last_name', 'students.first_name','students.gender', 'studies.academic_class_id', 'exams.*')
+                ->select('studies.student_id', 'students.last_name', 'students.first_name', 'students.gender', 'studies.academic_class_id', 'exams.*')
                 ->where('exams.academic_class_id', $request->academic_class_id)
                 ->where('studies.academic_class_id', $request->academic_class_id)
                 ->whereNull('studies.deleted_at')
@@ -49,14 +49,12 @@ class ExamController extends Controller
             // $result['form'] =$data;
 
             $result['form'] = ExamFormResource::collection($data);
-
-        } catch(Throwable $e) {
+        } catch (Throwable $e) {
             $result['status'] = 201;
             $result['message'] = $e->getMessage();
         }
 
         return response()->json($result);
-
     }
 
     public function save(StoreExamRequest $request)
@@ -68,7 +66,22 @@ class ExamController extends Controller
         try {
 
             DB::beginTransaction();
-            foreach($request->exams as $exam) {
+            foreach ($request->exams as $exam) {
+                $tFinal = (
+                    ($exam['att'] ?? 0)
+                    + ($exam['quiz'] ?? 0)
+                    + ($exam['hw'] ?? 0)
+                    + ($exam['pp'] ?? 0)
+                    + ($exam['pc'] ?? 0)
+                    + ($exam['sp'] ?? 0)
+                    + ($exam['ls'] ?? 0)
+                    + ($exam['rd'] ?? 0)
+                    + ($exam['st'] ?? 0)
+                    + ($exam['wt'] ?? 0)
+                );
+
+                $total = ((($exam['t_mid'] ?? 0) + $tFinal) / 2);
+
                 Exam::updateOrCreate(
                     [
                         "id" => $exam['id'] ?? null
@@ -79,17 +92,18 @@ class ExamController extends Controller
                         'att' => $exam['att'] ?? 0,
                         'quiz' => $exam['quiz'] ?? 0,
                         'hw' => $exam['hw'] ?? 0,
-                        're' => $exam['re'] ?? 0,
-                        'voc' => $exam['voc'] ?? 0,
-                        'gr' => $exam['gr'] ?? 0,
-                        'liu' => $exam['liu'] ?? 0,
-                        'wr' => $exam['wr'] ?? 0,
-                        'li' => $exam['li'] ?? 0,
+                        'pp' => $exam['pp'] ?? 0,
+                        'pc' => $exam['pc'] ?? 0,
+                        't_mid' => $exam['t_mid'] ?? 0,
+
                         'sp' => $exam['sp'] ?? 0,
-                        'mid' => $exam['mid'] ?? 0,
-                        'attitude' => $exam['attitude'] ?? 0,
-                        'final' => $exam['final'] ?? 0,
-                        'total' => ($exam['att'] + $exam['quiz'] + $exam['hw'] + $exam['re'] + $exam['voc']+$exam['gr']+$exam['liu']+$exam['wr']+$exam['li']+$exam['sp']+$exam['mid']+ $exam['attitude']+$exam['final'] ) ?? 0,
+                        'ls' => $exam['ls'] ?? 0,
+                        'rd' => $exam['rd'] ?? 0,
+                        'st' => $exam['st'] ?? 0,
+                        'wt' => $exam['wt'] ?? 0,
+
+                        't_final' => $tFinal,
+                        'total' => $total,
                     ]
                 );
             }
@@ -97,7 +111,7 @@ class ExamController extends Controller
 
             $exams = Study::leftJoin('exams', 'studies.student_id', 'exams.student_id')
                 ->join('students', 'studies.student_id', 'students.id')
-                ->select('studies.student_id', 'students.last_name', 'students.first_name','students.gender', 'studies.academic_class_id', 'exams.*')
+                ->select('studies.student_id', 'students.last_name', 'students.first_name', 'students.gender', 'studies.academic_class_id', 'exams.*')
                 ->where('exams.academic_class_id', $request->academic_class_id)
                 ->where('studies.academic_class_id', $request->academic_class_id)
                 ->whereNull('studies.deleted_at')
@@ -116,7 +130,7 @@ class ExamController extends Controller
 
             $data = ScoreRanking(array_merge($students->toArray(), $exams->toArray()));
 
-            foreach($data as $exam) {
+            foreach ($data as $exam) {
                 $ex = Exam::find($exam['id']);
                 $ex->rank = $exam['rank'];
                 $ex->save();
@@ -124,13 +138,12 @@ class ExamController extends Controller
 
             // $result['dara'] = $data;
 
-        } catch(Throwable $e) {
+        } catch (Throwable $e) {
             $result['status'] = 201;
             $result['message'] = $e->getMessage();
         }
 
         return response()->json($result);
-
     }
 
     public function show(Request $request)
@@ -139,26 +152,26 @@ class ExamController extends Controller
         abort_if(Gate::denies('score_list'), 403, 'អ្នកមិនអាចប្រើប្រាស់ចំណុចនេះទេ។');
 
         $exams = Study::leftJoin('exams', 'studies.student_id', 'exams.student_id')
-                ->join('students', 'studies.student_id', 'students.id')
-                ->select('studies.student_id', 'students.last_name', 'students.first_name','students.gender', 'studies.academic_class_id', 'exams.*')
-                ->where('exams.academic_class_id', $request->academic_class_id)
-                ->where('studies.academic_class_id', $request->academic_class_id)
-                ->whereNull('studies.deleted_at')
-                ->orderBy('students.last_name')
-                ->get();
+            ->join('students', 'studies.student_id', 'students.id')
+            ->select('studies.student_id', 'students.last_name', 'students.first_name', 'students.gender', 'studies.academic_class_id', 'exams.*')
+            ->where('exams.academic_class_id', $request->academic_class_id)
+            ->where('studies.academic_class_id', $request->academic_class_id)
+            ->whereNull('studies.deleted_at')
+            ->orderBy('students.last_name')
+            ->get();
 
-            $student_has_exams = $exams->pluck('student_id');
+        $student_has_exams = $exams->pluck('student_id');
 
-            $students = Study::join('students', 'studies.student_id', 'students.id')
-                ->select('studies.student_id', 'students.last_name', 'students.first_name', 'students.gender')
-                ->where('studies.academic_class_id', $request->academic_class_id)
-                ->whereNotIn('studies.student_id', $student_has_exams)
-                ->whereNull('studies.deleted_at')
-                ->orderBy('students.last_name')
-                ->get();
+        $students = Study::join('students', 'studies.student_id', 'students.id')
+            ->select('studies.student_id', 'students.last_name', 'students.first_name', 'students.gender')
+            ->where('studies.academic_class_id', $request->academic_class_id)
+            ->whereNotIn('studies.student_id', $student_has_exams)
+            ->whereNull('studies.deleted_at')
+            ->orderBy('students.last_name')
+            ->get();
 
-            $data = array_merge($students->toArray(), $exams->toArray());
+        $data = array_merge($students->toArray(), $exams->toArray());
 
-            return ExamShowResource::collection($data);
+        return ExamShowResource::collection($data);
     }
 }
