@@ -20,6 +20,8 @@ return new class extends Migration
             $table->float('m_hw')->default(0);
             $table->float('m_pp')->default(0);
             $table->float('m_pc')->default(0);
+            $table->float('m_t_mid')->default(0);
+
             $table->float('att')->default(0);
             $table->float('quiz')->default(0);
             $table->float('hw')->default(0);

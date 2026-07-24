@@ -37,11 +37,10 @@ const exportToXlsx = () => {
     HW: ret.m_hw ?? 0,
     PP: ret.m_pp ?? 0,
     PC: ret.m_pc ?? 0,
-    Mid: ret.t_mid ?? 0,
-    Total: ret.total ?? 0,
-    Ave: ((ret.m_att ?? 0) + (ret.m_hw ?? 0) + (ret.m_quiz ?? 0) + (ret.m_pp ?? 0) + (ret.m_pc ?? 0) + (ret.t_mid ?? 0)) / 6,
+    Mid: ret.m_t_mid ?? 0,
+    Ave: ((ret.m_att ?? 0) + (ret.m_hw ?? 0) + (ret.m_quiz ?? 0) + (ret.m_pp ?? 0) + (ret.m_pc ?? 0) + (ret.m_t_mid ?? 0)) / 6,
     Rank: ret.rank ?? 0,
-    Grade: Grade(ret.total ?? 0),
+    Grade: Grade(ret.m_t_mid ?? 0),
   }))
 
   const worksheet = XLSX.utils.json_to_sheet(worksheetData)
@@ -343,7 +342,7 @@ onMounted(() => {
                       Sex
                     </th>
                     <th
-                      colspan="7"
+                      colspan="6"
                       style="border: 1px solid black; padding: 5px"
                     >
                       Score
@@ -405,12 +404,6 @@ onMounted(() => {
                     >
                       T.Mid
                     </th>
-                    <th
-                      style="border: 1px solid black; padding: 5px"
-                      colspan="1"
-                    >
-                      Total
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -465,19 +458,13 @@ onMounted(() => {
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px"
                     >
-                      {{ ret.t_mid ?? 0 }}
-                    </td>
-                    <td
-                      colspan="1"
-                      style="text-align: center; border: 1px solid black; padding: 5px"
-                    >
-                      {{ ret.total ?? 0 }}
+                      {{ ret.m_t_mid ?? 0 }}
                     </td>
                     <td
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px; min-width: 90px; width: 90px;"
                     >
-                      {{ ((ret.m_att + ret.m_hw + ret.m_quiz + ret.m_pp + ret.m_pc + ret.t_mid) / 6).toFixed(2) }}
+                      {{ ((ret.m_att + ret.m_hw + ret.m_quiz + ret.m_pp + ret.m_pc + ret.m_t_mid) / 6).toFixed(2) }}
                     </td>
                     <td
                       colspan="1"
@@ -489,7 +476,7 @@ onMounted(() => {
                       colspan="1"
                       style="text-align: center; border: 1px solid black; padding: 5px; min-width: 120px; width: 120px;"
                     >
-                      {{ Grade(ret.total ?? 0) }}
+                      {{ Grade(ret.m_t_mid ?? 0) }}
                     </td>
                   </tr>
                   <td

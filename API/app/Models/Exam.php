@@ -33,6 +33,7 @@ class Exam extends Model
         'm_hw',
         'm_pp',
         'm_pc',
+        'm_t_mid',
 
     ];
 }

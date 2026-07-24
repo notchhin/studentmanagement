@@ -26,7 +26,8 @@ const form = reactive({
       m_hw: 0,
       m_pp: 0,
       m_pc: 0,
-      t_final: 0,
+
+      m_t_mid: 0,
       total: 0,
       avg: 0,
     },

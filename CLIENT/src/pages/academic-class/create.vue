@@ -12,7 +12,7 @@ const options = ref({
   rooms: [],
   academic_years: [],
   class_type: [
-    { id: 3, name: 'កុំព្យូទ័រ MidTerm' },
+    { id: 1, name: 'កុំព្យូទ័រ MidTerm' },
     { id: 2, name: 'អង់គ្លេស' },
     { id: 3, name: 'កុំព្យូទ័រ Final' },
   ],

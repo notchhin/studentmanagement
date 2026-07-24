@@ -103,7 +103,8 @@ class ExamController extends Controller
                         'hw' => $exam['hw'] ?? 0,
                         'pp' => $exam['pp'] ?? 0,
                         'pc' => $exam['pc'] ?? 0,
-                        't_mid' =>  (
+                        't_mid' => $exam['t_mid'] ?? 0,
+                        'm_t_mid' =>  (
                             $mAtt
                             + $mQuiz
                             + $mHw

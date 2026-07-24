@@ -42,6 +42,7 @@ class ExamShowResource extends JsonResource
             'mPp' => $this['mPp'] ?? $this['m_pp'] ?? 0,
             'm_pc' => $this['m_pc'] ?? $this['mPc'] ?? 0,
             'mPc' => $this['mPc'] ?? $this['m_pc'] ?? 0,
+            'm_t_mid' => $this['m_t_mid'] ?? 0,
             'total' => $this['total'] ?? 0
         ];
     }
