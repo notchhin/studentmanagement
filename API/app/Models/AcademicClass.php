@@ -23,16 +23,24 @@ class AcademicClass extends Model
     ];
 
     public function scopeFilter($query, array $filters)
-    {
-        $query->when($filters['search'] ?? null, function ($query, $search) {
-            $query->where(function ($query) use ($search) {
-                $query
-                    ->where('name', 'like', '%' . $search . '%');
-            });
-        })->when($filters['academic_year_id'] ?? null, function ($query, $academic_year_id) {
-            $query->whereAcademicYearId($academic_year_id);
+{
+    $query->when($filters['search'] ?? null, function ($query, $search) {
+        $query->where(function ($query) use ($search) {
+            $query->where('name', 'like', '%' . $search . '%')
+                ->orWhere('type', 'like', '%' . $search . '%')
+                ->orWhereHas('teacher', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('room', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
         });
-    }
+    })->when($filters['academic_year_id'] ?? null, function ($query, $academic_year_id) {
+        $query->whereAcademicYearId($academic_year_id);
+    });
+
+    return $query;
+}
 
     public function teacher()
     {
