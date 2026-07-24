@@ -20,7 +20,7 @@ export default [
     to: 'students-history',
     icon: { icon: 'mdi-account-injury-outline', size: 15 },
     active: 'studentshistory',
-    permission: 'student_history',
+    permission: 'student_list',
   },
   {
     title: 'blacklist',
