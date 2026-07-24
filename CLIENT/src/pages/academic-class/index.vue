@@ -231,9 +231,9 @@ onMounted(() => {
                   :key="row.id"
                 >
                   <td>
-                    <span v-if="row.type == 1">កាត់ដេ</span>
+                    <span v-if="row.type == 1">កុំព្យូទ័រ MidTerm</span>
                     <span v-if="row.type == 2">អង់គ្លេស</span>
-                    <span v-if="row.type == 3">កុំព្យូទ័រ</span>
+                    <span v-if="row.type == 3">កុំព្យូទ័រ Final</span>
                   </td>
 
                   <td v-text="row.room?.room || '-'" />

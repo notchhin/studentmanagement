@@ -1,9 +1,10 @@
 <script setup>
-import { onMounted, reactive, ref, watch } from 'vue'
+import { onMounted, reactive, ref, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/plugins/utilites'
 const { params } = useRoute()
 import { Printd } from 'printd'
+import * as XLSX from 'xlsx'
 const d = new Printd()
 const params_id = ref(null)
 const params_month = ref(null)
@@ -30,6 +31,61 @@ const imgP = `
 const onPrint = () => {
   d.print(document.getElementById('table'), [imgP])
 }
+
+const onExportExcel = () => {
+  if (!data.value.attendances || !Object.keys(data.value.attendances).length) return
+
+  const totalDays = data.value.total_day || 31
+
+  // Header row
+  const header = ['ល.រ', 'ឈ្មោះ', 'ភេទ']
+  for (let day = 1; day <= totalDays; day++) {
+    header.push(day.toString().padStart(2, '0'))
+  }
+  header.push('A', 'P')
+
+  // Data rows
+  const rows = Object.entries(data.value.attendances).map(([name, student]) => {
+    const row = [
+      student.number,
+      name,
+      student.gender == 1 ? 'ប្រុស' : 'ស្រី',
+    ]
+    const daysArray = Array.isArray(student.days)
+      ? student.days
+      : student.days && typeof student.days === 'object'
+        ? Object.values(student.days)
+        : []
+    daysArray.forEach(dItem => row.push(dItem?.absent ?? ''))
+    row.push(student.total_A, student.total_P)
+    
+    return row
+  })
+
+  const sheetData = [header, ...rows]
+  const ws = XLSX.utils.aoa_to_sheet(sheetData)
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 5 },  // ល.រ
+    { wch: 20 }, // ឈ្មោះ
+    { wch: 8 },  // ភេទ
+    ...Array.from({ length: totalDays }, () => ({ wch: 4 })),
+    { wch: 5 },  // A
+    { wch: 5 },  // P
+  ]
+
+  const wb = XLSX.utils.book_new()
+  const monthName = convertKhmerMonthToEnglish(exam_month.value.name)
+  XLSX.utils.book_append_sheet(wb, ws, 'Attendance')
+
+  const fileName = `Attendance_${model.value.level?.level || ''}_${monthName}${
+    params_s.value ? '_Exam' + params_s.value : ''
+  }.xlsx`
+
+  XLSX.writeFile(wb, fileName)
+}
+
 const khmerToEnglishMonthMap = {
   មករា: 'January',
   កុម្ភៈ: 'February',
@@ -72,96 +128,28 @@ const fetchTable = () => {
     })
 }
 
-// const semesters = ref([
-//   {
-//     id: 1,
-//     name: 'ឆមាសទី១',
-//   },
-//   {
-//     id: 2,
-//     name: 'ឆមាសទី២',
-//   },
-// ])
-
 const months = ref([
-  {
-    id: 1,
-    name: 'មករា',
-  },
-  {
-    id: 2,
-    name: 'កុម្ភៈ',
-  },
-  {
-    id: 3,
-    name: 'មីនា',
-  },
-  {
-    id: 4,
-    name: 'មេសា',
-  },
-  {
-    id: 5,
-    name: 'ឧសភា',
-  },
-  {
-    id: 6,
-    name: 'មិថុនា',
-  },
-  {
-    id: 7,
-    name: 'កក្កដា',
-  },
-  {
-    id: 8,
-    name: 'សីហា',
-  },
-  {
-    id: 9,
-    name: 'កញ្ញា',
-  },
-  {
-    id: 10,
-    name: 'តុលា',
-  },
-  {
-    id: 11,
-    name: 'វិច្ឆិកា',
-  },
-  {
-    id: 12,
-    name: 'ធ្នូ',
-  },
-  {
-    id: 0,
-    name: 'ឆមាស',
-  },
+  { id: 1, name: 'មករា' },
+  { id: 2, name: 'កុម្ភៈ' },
+  { id: 3, name: 'មីនា' },
+  { id: 4, name: 'មេសា' },
+  { id: 5, name: 'ឧសភា' },
+  { id: 6, name: 'មិថុនា' },
+  { id: 7, name: 'កក្កដា' },
+  { id: 8, name: 'សីហា' },
+  { id: 9, name: 'កញ្ញា' },
+  { id: 10, name: 'តុលា' },
+  { id: 11, name: 'វិច្ឆិកា' },
+  { id: 12, name: 'ធ្នូ' },
+  { id: 0, name: 'ឆមាស' },
 ])
 const storeID = ref([
-  {
-    id: 1,
-    name: '1',
-  },
-  {
-    id: 2,
-    name: '2',
-  },
-  {
-    id: 3,
-    name: '3',
-  },
-  {
-    id: 4,
-    name: '4',
-  },
-  {
-    id: 5,
-    name: '5',
-  },
-  {
-    id: 6,
-    name: '6',
-  },
+  { id: 1, name: '1' },
+  { id: 2, name: '2' },
+  { id: 3, name: '3' },
+  { id: 4, name: '4' },
+  { id: 5, name: '5' },
+  { id: 6, name: '6' },
 ])
 onMounted(() => {
   ;[params_id.value, params_month.value, params_s.value] = params.id.split('_')
@@ -176,6 +164,7 @@ const monthDisplay = computed(() => {
   }`
 })
 </script>
+
 <template>
   <div>
     <VRow>
@@ -186,29 +175,43 @@ const monthDisplay = computed(() => {
       >
         <VCard :title="`${$t('class')} ${model.level?.level} ${$t('academic_year')} ${model.academic_year?.name}`">
           <VDivider />
-          <v-btn
+          <VBtn
             class="mt-5 mx-5"
             color="secondary"
             variant="outlined"
             @click="$router.go(-1)"
-            ><v-icon>mdi-arrow-back</v-icon>&nbsp;{{ $t('back') }}</v-btn
           >
+            <VIcon>mdi-arrow-back</VIcon>&nbsp;{{ $t('back') }}
+          </VBtn>
           <VCardText>
-            <v-row class="text-h6 font-weight-bold text-center my-5 mx-3">
-              <div style="width: 40%"></div>
-              <v-row style="width: 60%">
-                <v-spacer />
+            <VRow class="text-h6 font-weight-bold text-center my-5 mx-3">
+              <div style="width: 40%" />
+              <VRow style="width: 60%">
+                <VSpacer />
                 <div>
-                  <v-btn
+                  <VBtn
                     flat
                     color="white"
                     @click="onPrint"
-                    ><v-icon color="grey">mdi-printer</v-icon></v-btn
                   >
+                    <VIcon color="grey">
+                      mdi-printer
+                    </VIcon>
+                  </VBtn>
+                  <VBtn
+                    flat
+                    color="white"
+                    @click="onExportExcel"
+                  >
+                    <VIcon color="green">
+                      mdi-file-excel
+                    </VIcon>
+                  </VBtn>
                 </div>
-              </v-row>
-            </v-row>
+              </VRow>
+            </VRow>
             <table
+              id="table"
               style="
                 width: 100%;
                 display: block;
@@ -222,86 +225,85 @@ const monthDisplay = computed(() => {
                 color: black;
               "
               class="mt-5"
-              id="table"
             >
               <colgroup>
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
-                <col width="2%" />
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
+                <col width="2%">
               </colgroup>
 
               <thead>
                 <tr>
                   <td>
                     <VRow>
-                      <VCol style="margin: 0 85%"
-                        ><v-img
+                      <VCol style="margin: 0 85%">
+                        <VImg
                           src="/src/assets/images/logo_school.png"
                           :width="100"
-                        ></v-img>
+                        />
                       </VCol>
                     </VRow>
                   </td>
 
-                  <td colspan="18"></td>
-                  <td colspan="24"></td>
+                  <td colspan="18" />
+                  <td colspan="24" />
                   <td
                     colspan="8"
                     valign="bottom"
@@ -330,8 +332,8 @@ const monthDisplay = computed(() => {
                   >
                     សាលារៀនជំនួយដល់កុមារកម្ពុជា
                   </td>
-                  <td colspan="17"></td>
-                  <td colspan="17"></td>
+                  <td colspan="17" />
+                  <td colspan="17" />
                   <td
                     colspan="8"
                     valign="center"
@@ -360,11 +362,11 @@ const monthDisplay = computed(() => {
                   >
                     Schools Helping Cambodian Children
                   </td>
-                  <td colspan="18"></td>
-                  <td colspan="20"></td>
+                  <td colspan="18" />
+                  <td colspan="20" />
                 </tr>
                 <tr>
-                  <td colspan="12"></td>
+                  <td colspan="12" />
                   <td
                     colspan="23"
                     style="
@@ -380,7 +382,7 @@ const monthDisplay = computed(() => {
                   </td>
                 </tr>
                 <tr>
-                  <td colspan="12"></td>
+                  <td colspan="12" />
                   <td
                     colspan="23"
                     style="
@@ -395,7 +397,7 @@ const monthDisplay = computed(() => {
                     {{ monthDisplay }}
                   </td>
                 </tr>
-                <br />
+                <br>
                 <tr style="line-height: 30px">
                   <td
                     colspan="2"
@@ -467,10 +469,10 @@ const monthDisplay = computed(() => {
                     ភេទ
                   </td>
                   <td
-                    rowspan="2"
-                    style="border: 1px solid black; padding: 5px; font-weight: bold"
                     v-for="date in data.total_day"
                     :key="date"
+                    rowspan="2"
+                    style="border: 1px solid black; padding: 5px; font-weight: bold"
                   >
                     {{ date.toString().length == '1' ? '0' + date : date }}
                   </td>
@@ -543,7 +545,7 @@ const monthDisplay = computed(() => {
                     {{ student.total_P }}
                   </td>
                 </tr>
-                <br />
+                <br>
                 <tr>
                   <td
                     style="
@@ -569,8 +571,8 @@ const monthDisplay = computed(() => {
                   >
                     Seen and approved
                   </td>
-                  <td colspan="20"></td>
-                  <td colspan="20"></td>
+                  <td colspan="20" />
+                  <td colspan="20" />
                   <td
                     style="
                       text-align: center;
@@ -598,11 +600,11 @@ const monthDisplay = computed(() => {
                   <td
                     style="text-align: center"
                     colspan="20"
-                  ></td>
+                  />
                   <td
                     style="text-align: center"
                     colspan="20"
-                  ></td>
+                  />
                   <td
                     style="
                       text-align: center;
@@ -619,7 +621,7 @@ const monthDisplay = computed(() => {
                   <td
                     style="text-align: center"
                     colspan="10"
-                  ></td>
+                  />
                   <td
                     style="text-align: center; font-family: Khmer OS Battambang"
                     colspan="10"
@@ -631,8 +633,8 @@ const monthDisplay = computed(() => {
                   <td
                     style="text-align: center; height: 80px"
                     colspan="22"
-                  ></td>
-                  <td colspan="20"></td>
+                  />
+                  <td colspan="20" />
                   <td
                     style="
                       text-align: center;
@@ -649,7 +651,7 @@ const monthDisplay = computed(() => {
                   <td
                     style="text-align: center"
                     colspan="2"
-                  ></td>
+                  />
                 </tr>
               </tbody>
             </table>
@@ -659,6 +661,7 @@ const monthDisplay = computed(() => {
     </VRow>
   </div>
 </template>
+
 <route lang="yaml">
 meta:
   title: Attendance

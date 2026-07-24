@@ -12,9 +12,9 @@ const options = ref({
   rooms: [],
   academic_years: [],
   class_type: [
-    // { id: 1, name: 'កាត់ដេ' },
+    { id: 3, name: 'កុំព្យូទ័រ MidTerm' },
     { id: 2, name: 'អង់គ្លេស' },
-    { id: 3, name: 'កុំព្យូទ័រ' },
+    { id: 3, name: 'កុំព្យូទ័រ Final' },
   ],
 })
 const submitting = ref(false)
@@ -139,7 +139,7 @@ onMounted(async () => {
                 />
               </VCol>
               <VCol
-                v-if="form.type == 2 || form.type == 3"
+                v-if="form.type == 2 || form.type == 3 || form.type == 1 " 
                 md="4"
                 cols="12"
               >
@@ -153,7 +153,7 @@ onMounted(async () => {
                 />
               </VCol>
               <VCol
-                v-if="form.type == 2 || form.type == 3"
+                v-if="form.type == 2 || form.type == 3 || form.type == 1"
                 md="4"
                 cols="12"
               >

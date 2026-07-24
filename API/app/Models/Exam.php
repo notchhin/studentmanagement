@@ -28,5 +28,11 @@ class Exam extends Model
         'wt',
         'total',
         'rank',
+        'm_att',
+        'm_quiz',
+        'm_hw',
+        'm_pp',
+        'm_pc',
+
     ];
 }

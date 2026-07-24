@@ -57,9 +57,9 @@ const fetchData = () => {
     options.value.rooms = res.data.rooms
     options.value.academic_years = res.data.academic_years
     options.value.class_type = [
-      // { id: 1, name: 'កាត់ដេ' },
+      { id: 1, name: 'កុំព្យូទ័រ MidTerm' },
       { id: 2, name: 'អង់គ្លេស' },
-      { id: 3, name: 'កុំព្យូទ័រ' },
+      { id: 3, name: 'កុំព្យូទ័រ Final' },
     ]
   })
 }

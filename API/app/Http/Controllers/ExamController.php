@@ -15,6 +15,10 @@ use App\Http\Resources\Exam\ExamShowResource;
 
 class ExamController extends Controller
 {
+    private function getExamValue(array $exam, string $snakeKey, string $camelKey): mixed
+    {
+        return $exam[$snakeKey] ?? $exam[$camelKey] ?? 0;
+    }
 
     public function form(Request $request)
     {
@@ -81,6 +85,11 @@ class ExamController extends Controller
                 );
 
                 $total = ((($exam['t_mid'] ?? 0) + $tFinal) / 2);
+                $mAtt = $this->getExamValue($exam, 'm_att', 'mAtt');
+                $mQuiz = $this->getExamValue($exam, 'm_quiz', 'mQuiz');
+                $mHw = $this->getExamValue($exam, 'm_hw', 'mHw');
+                $mPp = $this->getExamValue($exam, 'm_pp', 'mPp');
+                $mPc = $this->getExamValue($exam, 'm_pc', 'mPc');
 
                 Exam::updateOrCreate(
                     [
@@ -94,7 +103,18 @@ class ExamController extends Controller
                         'hw' => $exam['hw'] ?? 0,
                         'pp' => $exam['pp'] ?? 0,
                         'pc' => $exam['pc'] ?? 0,
-                        't_mid' => $exam['t_mid'] ?? 0,
+                        't_mid' =>  (
+                            $mAtt
+                            + $mQuiz
+                            + $mHw
+                            + $mPp
+                            + $mPc
+                        ),
+                        'm_att' => $mAtt,
+                        'm_quiz' => $mQuiz,
+                        'm_hw' => $mHw,
+                        'm_pp' => $mPp,
+                        'm_pc' => $mPc,
 
                         'sp' => $exam['sp'] ?? 0,
                         'ls' => $exam['ls'] ?? 0,

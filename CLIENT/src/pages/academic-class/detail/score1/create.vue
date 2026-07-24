@@ -14,26 +14,19 @@ const exam_month = ref({})
 const form = reactive({
   academic_class_id: params_id.value,
   type: params_month.value,
-  semester: params_s || 1,
+  semester: params_s.value || 1,
   exams: [
     {
       id: null,
       student_id: null,
       name: null,
       sex: null,
-      att: 0,
-      quiz: 0,
-      hw: 0,
-      re: 0,
-      voc: 0,
-      gr: 0,
-      liu: 0,
-      wr: 0,
-      li: 0,
-      sp: 0,
-      mid: 0,
-      attitude: 0,
-      final: 0,
+      m_att: 0,
+      m_quiz: 0,
+      m_hw: 0,
+      m_pp: 0,
+      m_pc: 0,
+      t_final: 0,
       total: 0,
       avg: 0,
     },
@@ -97,6 +90,7 @@ onMounted(() => {
   fetchData()
 })
 </script>
+
 <template>
   <div>
     <VRow>
@@ -105,65 +99,82 @@ onMounted(() => {
         md="12"
         sm="12"
       >
-        <v-form
-          lazy-validation
+        <VForm
           ref="refForm"
-          @submit.prevent="submit()"
+          lazy-validation
+          @submit.prevent="submit"
         >
-          <VCard :title="`${$t('class')} ${model.name} ${$t('academic_year')} ${model.academic_year?.name}`">
+          <VCard :title="`${$t('class')} ${model.level?.level} ${$t('academic_year')} ${model.academic_year?.name}`">
             <VDivider />
-            <v-btn
+            <VBtn
               class="mt-5 mx-5"
               color="secondary"
               variant="outlined"
               @click="$router.go(-1)"
-              ><v-icon>mdi-arrow-back</v-icon>&nbsp;{{ $t('back') }}</v-btn
             >
+              <VIcon>mdi-arrow-back</VIcon>&nbsp;{{ $t('back') }}
+            </VBtn>
             <VCardText>
-              <v-row>
-                <v-col
+              <VRow>
+                <VCol
                   cols="12"
                   md="4"
                   lg="4"
                   sm="12"
                 >
                   <div class="text-h6 font-weight-bold">
-                    តារាងដាក់ពិន្ទុ​​ កាត់ដេរ
-                    
+                    <p style="font-family: 'Siemreap', Times, serif">
+                      {{ $t('computer_score') }}
+                    </p>
                   </div>
-                  <div class="text-h6 font-weight-bold" style="line-height: 40px;">
-                    {{ $t('teacher') }}: {{model.teacher?.name}} 
+                  <div
+                    class="text-h6 font-weight-bold"
+                    style="line-height: 40px"
+                  >
+                    <p style="font-family: 'Siemreap', Times, serif">
+                      {{ $t('teacher') }} : {{ model.teacher?.name }}
+                    </p>
                   </div>
+
                   <div class="text-h6 font-weight-bold">
-                    {{ $t('Room') }}: {{model.room?.room}} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $t('Time') }}: {{model.time?.time}} 
+                    <p style="font-family: 'Siemreap', Times, serif">
+                      {{ $t('room') }}: {{ model.room?.room }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{ $t('time') }}:
+                      {{ model.time?.time }}
+                    </p>
                   </div>
-                </v-col>
-                
-                <v-col
-                  cols="9"
+                </VCol>
+                <VCol
+                  cols="12"
                   md="2"
                   lg="2"
                   sm="12"
                   class="py-0"
-                ></v-col>
-                <v-col
+                />
+                <VCol
+                  cols="10"
+                  md="4"
+                  lg="4"
+                  sm="10"
+                />
+                <VCol
                   cols="2"
                   md="2"
                   lg="2"
                   sm="2"
                   class="mt-1"
-                  align="center"
+                  align="end"
                 >
-                  <v-btn
+                  <VBtn
                     color="success"
                     type="submit"
                     :loading="submitting"
-                    ><VIcon>mdi-content-save</VIcon> {{ $t('Save changes') }}</v-btn
                   >
-                </v-col>
-              </v-row>
+                    <VIcon>mdi-content-save</VIcon> {{ $t('Save changes') }}
+                  </VBtn>
+                </VCol>
+              </VRow>
               <table
-                style="width: 60%"
+                style="width: 90%; font-family: 'Siemreap', Times, serif"
                 class="mt-5"
               >
                 <thead>
@@ -176,7 +187,7 @@ onMounted(() => {
                     </th>
                     <th
                       rowspan="2"
-                      colspan="3"
+                      colspan="4"
                     >
                       ឈ្មោះ
                     </th>
@@ -186,133 +197,78 @@ onMounted(() => {
                     >
                       ភេទ
                     </th>
-                    <th colspan="3">Final</th>
+                    <th>ATT(5)</th>
+                    <th>HW(10%)</th>
+                    <th>Quiz(15%)</th>
+                    <th>PP(35%)</th>
+                    <th>PC(35%)</th>
                   </tr>
-                  <!-- <tr>
-                    <th>Att<br>10%</th>
-                    <th>Quiz<br>10%</th>
-                    <th>HW<br>10%</th>
-                    <th>Re<br>10%</th>
-                    <th>Voc.<br>10%</th>
-                    <th>Gr.<br>10%</th>
-                    <th>LIU<br>10%</th>
-                    <th>Wr<br>10%</th>
-                    <th>Li<br>10%</th>
-                    <th>Sp.<br>10%</th>
-                  </tr> -->
                 </thead>
                 <tbody>
                   <tr
                     v-for="(exam, index) in form.exams"
                     :key="index"
                   >
-                    <td class="text-center">{{ index + 1 }}</td>
-                    <td colspan="3">{{ exam.last_name }} {{ exam.first_name }}</td>
-                    <td class="text-center">{{ exam.gender == 1 ? 'ប្រុស' : 'ស្រី' }}</td>
                     <td class="text-center">
-                      <v-text-field
-                        class="cus"
-                        variant="plain"
-                        density="compact"
-                        v-model="exam.final"
-                        :rules="[v => v <= 100 || 'ពិន្ទុអតិបរមា១០០']"
-                      />
+                      {{ index + 1 }}
                     </td>
-                    <!-- <td>
-                      <v-text-field
-                        class="cus"
-                        variant="plain"
-                        density="compact"
-                        v-model="exam.quiz"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
-                      />
+                    <td colspan="4">
+                      {{ exam.last_name }} {{ exam.first_name }}
                     </td>
-                    <td>
-                      <v-text-field
+                    <td class="text-center">
+                      {{ exam.gender == 1 ? 'ប្រុស' : 'ស្រី' }}
+                    </td>
+                    <td class="text-center">
+                      <VTextField
+                        v-model="exam.m_att"
                         class="cus"
                         variant="plain"
                         density="compact"
-                        
-                        v-model="exam.hw"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
+                        :rules="[v => v <= 5 || 'ពិន្ទុអតិបរមា៥']"
                       />
                     </td>
                     <td>
-                      <v-text-field
+                      <VTextField
+                        v-model="exam.m_hw"
                         class="cus"
                         variant="plain"
                         density="compact"
-                        
-                        v-model="exam.re"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
+                        :rules="[v => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
                       />
                     </td>
                     <td>
-                      <v-text-field
+                      <VTextField
+                        v-model="exam.m_quiz"
                         class="cus"
                         variant="plain"
                         density="compact"
-                        
-                        v-model="exam.voc"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
+                        :rules="[v => v <= 15 || 'ពិន្ទុអតិបរមា១៥']"
                       />
                     </td>
                     <td>
-                      <v-text-field
+                      <VTextField
+                        v-model="exam.m_pp"
                         class="cus"
                         variant="plain"
                         density="compact"
-                        
-                        v-model="exam.gr"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
+                        :rules="[v => v <= 35 || 'ពិន្ទុអតិបរមា៣៥']"
                       />
                     </td>
                     <td>
-                      <v-text-field
+                      <VTextField
+                        v-model="exam.m_pc"
                         class="cus"
                         variant="plain"
                         density="compact"
-                        
-                        v-model="exam.liu"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
+                        :rules="[v => v <= 35 || 'ពិន្ទុអតិបរមា៣៥']"
                       />
                     </td>
-                    <td>
-                      <v-text-field
-                        class="cus"
-                        variant="plain"
-                        density="compact"
-                        
-                        v-model="exam.wr"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        class="cus"
-                        variant="plain"
-                        density="compact"
-                        
-                        v-model="exam.li"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
-                      />
-                    </td>
-                    <td>
-                      <v-text-field
-                        class="cus"
-                        variant="plain"
-                        density="compact"
-                        
-                        v-model="exam.sp"
-                        :rules="[(v) => v <= 10 || 'ពិន្ទុអតិបរមា១០']"
-                      />
-                    </td> -->
                   </tr>
                 </tbody>
               </table>
             </VCardText>
           </VCard>
-        </v-form>
+        </VForm>
       </VCol>
     </VRow>
   </div>

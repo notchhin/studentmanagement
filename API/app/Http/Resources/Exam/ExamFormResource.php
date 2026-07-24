@@ -32,7 +32,17 @@ class ExamFormResource extends JsonResource
             'rd' => $this['rd'] ?? 0,
             'st' => $this['st'] ?? 0,
             'wt' => $this['wt'] ?? 0,
-            'total' => $this['total'] ?? 0
+            'total' => $this['total'] ?? 0,
+            'm_att' => $this['m_att'] ?? $this['mAtt'] ?? 0,
+            'mAtt' => $this['mAtt'] ?? $this['m_att'] ?? 0,
+            'm_quiz' => $this['m_quiz'] ?? $this['mQuiz'] ?? 0,
+            'mQuiz' => $this['mQuiz'] ?? $this['m_quiz'] ?? 0,
+            'm_hw' => $this['m_hw'] ?? $this['mHw'] ?? 0,
+            'mHw' => $this['mHw'] ?? $this['m_hw'] ?? 0,
+            'm_pp' => $this['m_pp'] ?? $this['mPp'] ?? 0,
+            'mPp' => $this['mPp'] ?? $this['m_pp'] ?? 0,
+            'm_pc' => $this['m_pc'] ?? $this['mPc'] ?? 0,
+            'mPc' => $this['mPc'] ?? $this['m_pc'] ?? 0,
 
         ];
     }

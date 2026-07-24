@@ -15,6 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignUuid('academic_class_id')->index();
             $table->foreignUuid('student_id')->index();;
+            $table->float('m_att')->default(0);
+            $table->float('m_quiz')->default(0);
+            $table->float('m_hw')->default(0);
+            $table->float('m_pp')->default(0);
+            $table->float('m_pc')->default(0);
             $table->float('att')->default(0);
             $table->float('quiz')->default(0);
             $table->float('hw')->default(0);
