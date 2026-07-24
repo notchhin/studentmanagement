@@ -36,12 +36,12 @@ class DatabaseSeeder extends Seeder
             }
 
             DB::table('users')->updateOrInsert(
-                ['email' => 'admin@admin.com'],
+                ['email' => 'super@admin.com'],
                 [
                     'id' => '6a0652a1-c83f-4233-9bdb-85ce5851dca7',
                     'school_id' => 57,
-                    'username' => 'admin',
-                    'password' => bcrypt('Pwd@12345'),
+                    'username' => 'superadmin',
+                    'password' => bcrypt('Both@123'),
                     'owner' => true,
                     'is_super' => true,
                 ]
@@ -52,7 +52,7 @@ class DatabaseSeeder extends Seeder
                 RoleSeeder::class,
             ]);
 
-            DB::unprepared(file_get_contents(database_path('sql/data.sql')));
+            // DB::unprepared(file_get_contents(database_path('sql/data.sql')));
         } finally {
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }

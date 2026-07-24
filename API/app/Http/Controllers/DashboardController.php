@@ -21,15 +21,17 @@ class DashboardController extends Controller
         try {
 
             $acYear = AcademicYear::where('is_active', 1)->first();
+            $startDate = $acYear?->start_date;
+            $endDate = $acYear?->end_date;
 
             $result['academic_classes'] = AcademicClass::count();
-            $result['classes_this_term'] = AcademicClass::where('academic_year_id', $acYear->id)->count();
+            $result['classes_this_term'] = $acYear ? AcademicClass::where('academic_year_id', $acYear->id)->count() : 0;
             $result['teachers'] = Teacher::count();
             $result['students'] = Student::count();
             $result['blacklist'] = BlackList::count();
-            $result['new_students'] = Student::whereBetween('created_at', [$acYear->start_date, $acYear->end_date])->count();
-            $result['new_students_m'] = Student::whereBetween('created_at', [$acYear->start_date, $acYear->end_date])->where('gender', 1)->count();
-            $result['new_students_f'] = Student::whereBetween('created_at', [$acYear->start_date, $acYear->end_date])->where('gender', 2)->count();
+            $result['new_students'] = $startDate && $endDate ? Student::whereBetween('created_at', [$startDate, $endDate])->count() : 0;
+            $result['new_students_m'] = $startDate && $endDate ? Student::whereBetween('created_at', [$startDate, $endDate])->where('gender', 1)->count() : 0;
+            $result['new_students_f'] = $startDate && $endDate ? Student::whereBetween('created_at', [$startDate, $endDate])->where('gender', 2)->count() : 0;
             $result['users'] = User::count();
 
             $student_in_month = [];

@@ -27,8 +27,8 @@ const isPasswordVisible = ref(false)
 const refVForm = ref()
 
 const form = ref({
-  email: 'admin',
-  password: 'Pwd@12345',
+  email: '',
+  password: '',
 })
 
 const onSubmit = () => {
@@ -115,7 +115,7 @@ const logo = ref(
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
 
-                <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4"></div>
+                <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4" />
 
                 <VBtn
                   block
