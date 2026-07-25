@@ -32,15 +32,15 @@ const exportToXlsx = () => {
     No: index + 1,
     Name: `${ret.last_name} ${ret.first_name}`,
     Sex: ret.gender == 1 ? 'ប្រុស' : 'ស្រី',
-    Att: ret.m_att ?? 0,
-    Quiz: ret.m_quiz ?? 0,
-    HW: ret.m_hw ?? 0,
-    PP: ret.m_pp ?? 0,
-    PC: ret.m_pc ?? 0,
-    Mid: ret.m_t_mid ?? 0,
-    Ave: ((ret.m_att ?? 0) + (ret.m_hw ?? 0) + (ret.m_quiz ?? 0) + (ret.m_pp ?? 0) + (ret.m_pc ?? 0) + (ret.m_t_mid ?? 0)) / 6,
+    Att: ret.att ?? ret.m_att ?? 0,
+    Quiz: ret.quiz ?? ret.m_quiz ?? 0,
+    HW: ret.hw ?? ret.m_hw ?? 0,
+    PP: ret.pp ?? ret.m_pp ?? 0,
+    PC: ret.pc ?? ret.m_pc ?? 0,
+    Mid: ret.t_mid ?? ret.m_t_mid ?? 0,
+    Ave: ((ret.att ?? ret.m_att ?? 0) + (ret.hw ?? ret.m_hw ?? 0) + (ret.quiz ?? ret.m_quiz ?? 0) + (ret.pp ?? ret.m_pp ?? 0) + (ret.pc ?? ret.m_pc ?? 0) + (ret.t_mid ?? ret.m_t_mid ?? 0)) / 6,
     Rank: ret.rank ?? 0,
-    Grade: Grade(ret.m_t_mid ?? 0),
+    Grade: Grade(ret.t_mid ?? ret.m_t_mid ?? 0),
   }))
 
   const worksheet = XLSX.utils.json_to_sheet(worksheetData)

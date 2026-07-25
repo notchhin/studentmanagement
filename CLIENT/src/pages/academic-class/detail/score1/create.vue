@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/plugins/utilites'
+
 const { params } = useRoute()
 const params_id = ref(null)
 const params_month = ref(null)
@@ -21,14 +22,12 @@ const form = reactive({
       student_id: null,
       name: null,
       sex: null,
-      m_att: 0,
-      m_quiz: 0,
-      m_hw: 0,
-      m_pp: 0,
-      m_pc: 0,
-
-      m_t_mid: 0,
-      total: 0,
+      att: 0,
+      quiz: 0,
+      hw: 0,
+      pp: 0,
+      pc: 0,
+      t_mid: 0,
       avg: 0,
     },
   ],
@@ -54,7 +53,27 @@ const fetchForm = () => {
       academic_class_id: route.query.id,
     })
     .then(res => {
-      Object.assign(form.exams, res.data.form)
+      form.exams = (res.data.form || []).map(exam => ({
+        id: null,
+        student_id: null,
+        name: null,
+        sex: null,
+        att: 0,
+        quiz: 0,
+        hw: 0,
+        pp: 0,
+        pc: 0,
+        t_mid: 0,
+        avg: 0,
+        ...exam,
+        att: exam.att ?? exam.m_att ?? 0,
+        quiz: exam.quiz ?? exam.m_quiz ?? 0,
+        hw: exam.hw ?? exam.m_hw ?? 0,
+        pp: exam.pp ?? exam.m_pp ?? 0,
+        pc: exam.pc ?? exam.m_pc ?? 0,
+        t_mid: exam.t_mid ?? exam.m_t_mid ?? 0,
+        avg: exam.avg ?? 0,
+      }))
     })
 }
 
@@ -62,9 +81,29 @@ const submit = async () => {
   const { valid } = await refForm.value?.validate()
   if (valid) {
     submitting.value = true
+    const payload = {
+      ...form,
+      exams: form.exams.map(exam => ({
+        ...exam,
+        att: Number(exam.att ?? 0),
+        quiz: Number(exam.quiz ?? 0),
+        hw: Number(exam.hw ?? 0),
+        pp: Number(exam.pp ?? 0),
+        pc: Number(exam.pc ?? 0),
+        t_mid: Number(exam.t_mid ?? 0),
+        avg: Number(exam.avg ?? 0),
+        m_att: Number(exam.att ?? exam.m_att ?? 0),
+        m_quiz: Number(exam.quiz ?? exam.m_quiz ?? 0),
+        m_hw: Number(exam.hw ?? exam.m_hw ?? 0),
+        m_pp: Number(exam.pp ?? exam.m_pp ?? 0),
+        m_pc: Number(exam.pc ?? exam.m_pc ?? 0),
+        m_t_mid: Number(exam.t_mid ?? exam.m_t_mid ?? 0),
+      })),
+    }
+
     api
-      .post('exam-save', form)
-      .then(res => {
+      .post('exam-save', payload)
+      .then(() => {
         fetchForm()
       })
       .finally(() => {
@@ -203,6 +242,7 @@ onMounted(() => {
                     <th>Quiz(15%)</th>
                     <th>PP(35%)</th>
                     <th>PC(35%)</th>
+                    <th>T.Mid(100%)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -221,7 +261,9 @@ onMounted(() => {
                     </td>
                     <td class="text-center">
                       <VTextField
-                        v-model="exam.m_att"
+                        v-model.number="exam.att"
+                        type="number"
+                        min="0"
                         class="cus"
                         variant="plain"
                         density="compact"
@@ -230,7 +272,9 @@ onMounted(() => {
                     </td>
                     <td>
                       <VTextField
-                        v-model="exam.m_hw"
+                        v-model.number="exam.hw"
+                        type="number"
+                        min="0"
                         class="cus"
                         variant="plain"
                         density="compact"
@@ -239,7 +283,9 @@ onMounted(() => {
                     </td>
                     <td>
                       <VTextField
-                        v-model="exam.m_quiz"
+                        v-model.number="exam.quiz"
+                        type="number"
+                        min="0"
                         class="cus"
                         variant="plain"
                         density="compact"
@@ -248,7 +294,9 @@ onMounted(() => {
                     </td>
                     <td>
                       <VTextField
-                        v-model="exam.m_pp"
+                        v-model.number="exam.pp"
+                        type="number"
+                        min="0"
                         class="cus"
                         variant="plain"
                         density="compact"
@@ -257,11 +305,24 @@ onMounted(() => {
                     </td>
                     <td>
                       <VTextField
-                        v-model="exam.m_pc"
+                        v-model.number="exam.pc"
+                        type="number"
+                        min="0"
                         class="cus"
                         variant="plain"
                         density="compact"
                         :rules="[v => v <= 35 || 'ពិន្ទុអតិបរមា៣៥']"
+                      />
+                    </td>
+                    <td>
+                      <VTextField
+                        v-model.number="exam.t_mid"
+                        type="number"
+                        min="0"
+                        class="cus"
+                        variant="plain"
+                        density="compact"
+                        :rules="[v => v <= 100 || 'ពិន្ទុអតិបរមា១០០']"
                       />
                     </td>
                   </tr>
