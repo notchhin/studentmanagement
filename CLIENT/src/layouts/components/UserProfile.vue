@@ -4,11 +4,12 @@ import { useAuthStore } from "@/plugins/auth.module"
 import avatar1 from "@images/avatars/avatar-1.png"
 import { default as constant } from "@/constants"
 
-const user = useAuthStore().user
+const authStore = useAuthStore()
+const user = computed(() => authStore.user)
 
 const userAvatar = computed(() => {
-  if (user?.photo_path) {
-    return constant.storagePath + user.photo_path
+  if (user.value?.photo_path) {
+    return constant.storagePath + user.value.photo_path
   }
   
   return avatar1

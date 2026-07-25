@@ -42,7 +42,7 @@ class AcademicClassController extends Controller
                 ->latest()->paginate($request->perPage);
 
             $result['data'] = $academic_classes;
-            $result['academic_years'] = AcademicYear::select('id', 'name')->orderByDESC('is_active')->get();
+            $result['academic_years'] = AcademicYear::select('id', 'name')->orderBy('name', 'asc')->get();
             $result['academic_year_id'] = $academic_year_id;
 
         } catch (Throwable $e) {
@@ -151,11 +151,11 @@ class AcademicClassController extends Controller
 
         try {
 
-            $result['teachers'] = Teacher::orderByDESC('name')->get();
-            $result['times'] = Time::orderByDESC('time')->get();
-            $result['levels'] = Level::orderByDESC('level')->get();
-            $result['rooms'] = Room::orderByDESC('room')->get();
-            $result['academic_years'] = AcademicYear::select('id', 'name')->orderByDESC('is_active')->get();
+            $result['teachers'] = Teacher::orderBy('name', 'asc')->get();
+            $result['times'] = Time::orderBy('time', 'asc')->get();
+            $result['levels'] = Level::orderBy('level', 'asc')->get();
+            $result['rooms'] = Room::orderBy('room', 'asc')->get();
+            $result['academic_years'] = AcademicYear::select('id', 'name')->orderBy('name', 'asc')->get();
 
         } catch (Throwable $e) {
             $result['status'] = 201;

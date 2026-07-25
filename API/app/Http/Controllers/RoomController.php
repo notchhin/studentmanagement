@@ -17,7 +17,7 @@ class RoomController extends Controller
 
         try {
 
-            $q = Room::filter(['search' => $request->search])->latest()->paginate($request->perPage);
+            $q = Room::filter(['search' => $request->search])->orderBy('room', 'asc')->paginate($request->perPage);
 
             $result['data'] = $q;
 

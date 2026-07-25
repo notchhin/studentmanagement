@@ -19,28 +19,45 @@ let getData = () => {
 onMounted(() => {
   getData()
 })
+
+const positions = ref([
+  {
+    id: 1,
+    name: "គ្រូបង្រៀន",
+  },
+  {
+    id: 2,
+    name: "នាយករង",
+  },
+  {
+    id: 3,
+    name: "នាយក",
+  },
+])
 </script>
+
 <template>
   <div>
     <!-- <h1>{{ route.query.id }}</h1>  -->
-    <v-card>
-      <v-card-title> {{ $t('teacher_list') }} </v-card-title>
-    </v-card>
-    <v-card class="mt-7">
-      <v-btn
+    <VCard>
+      <VCardTitle> {{ $t('teacher_list') }} </VCardTitle>
+    </VCard>
+    <VCard class="mt-7">
+      <VBtn
         class="mt-4 mx-5"
         color="secondary"
         variant="outlined"
         @click="$router.go(-1)"
-        ><v-icon>mdi-arrow-back</v-icon>&nbsp;{{ $t('back') }}</v-btn
       >
-      <v-row>
-        <v-col
+        <VIcon>mdi-arrow-back</VIcon>&nbsp;{{ $t('back') }}
+      </VBtn>
+      <VRow>
+        <VCol
           col="12"
           md="3"
           class="mt-8 ml-12"
         >
-          <v-img
+          <VImg
             alt="student"
             :src="
               teacher?.photo_path != null
@@ -48,30 +65,36 @@ onMounted(() => {
                 : 'https://cdn.iconscout.com/icon/free/png-256/free-teacher-240-1128987.png'
             "
             width="70%"
-          >
-          </v-img>
-        </v-col>
-        <v-col>
-          <v-col>
-            <v-card-title class="bg-primary rounded"> {{ $t('profile1') }} </v-card-title>
-          </v-col>
-          <v-row>
-            <v-col>
-              <v-card-text>{{ $t('code') }} : {{ teacher.code }}</v-card-text>
-              <v-card-text>{{ $t('khmer_name') }} : {{ teacher.name }}</v-card-text>
-              <v-card-text>{{ $t('latin_name') }} : {{ teacher.name_latin }}</v-card-text>
-              <v-card-text>{{ $t('dob') }} : {{ teacher.dob }}</v-card-text>
-              <v-card-text>{{ $t('headers.gender') }} : {{ teacher.sex_text }}</v-card-text>
-              <v-card-text>{{ $t('Position') }} : {{ teacher.position }}</v-card-text>
-              <v-card-text>{{ $t('pob') }} : {{ teacher.pob }}</v-card-text>
-              <v-card-text>{{ $t('headers.phone_number') }} : {{ teacher.phone }}</v-card-text>
-            </v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-    </v-card>
+          />
+        </VCol>
+        <VCol>
+          <VCol>
+            <VCardTitle class="bg-primary rounded">
+              {{ $t('profile1') }}
+            </VCardTitle>
+          </VCol>
+          <VRow>
+            <VCol>
+              <VCardText>{{ $t('code') }} : {{ teacher.code }}</VCardText>
+              <VCardText>{{ $t('khmer_name') }} : {{ teacher.name }}</VCardText>
+              <VCardText>{{ $t('latin_name') }} : {{ teacher.name_latin }}</VCardText>
+              <VCardText>{{ $t('dob') }} : {{ teacher.dob }}</VCardText>
+              <VCardText>{{ $t('headers.gender') }} : {{ teacher.sex_text }}</VCardText>
+              <VCardText>
+                {{ $t('Position') }} : {{
+                  positions.find((position) => position.id === teacher.position)?.name
+                }}
+              </VCardText>
+              <VCardText>{{ $t('pob') }} : {{ teacher.pob }}</VCardText>
+              <VCardText>{{ $t('headers.phone_number') }} : {{ teacher.phone }}</VCardText>
+            </VCol>
+          </VRow>
+        </VCol>
+      </VRow>
+    </VCard>
   </div>
 </template>
+
 <route lang="yaml">
 meta:
   title: Detail Teacher

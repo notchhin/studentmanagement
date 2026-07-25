@@ -148,6 +148,15 @@ onMounted(() => {
               <VCardText>{{ $t('headers.phone_number') }} : {{ student.phone }}</VCardText>
               <VCardText>{{ $t('Register') }} : {{ student.created_at?.split('T')[0] }}</VCardText>
               <VCardText>{{ $t('other') }} : {{ student.other }}</VCardText>
+              <VCardText>{{ $t('father_name') }} : {{ student.d_last_name }} {{ student.d_first_name }}</VCardText>
+              <VCardText>{{ $t('father_job') }} : {{ student.d_job }}</VCardText>
+              <VCardText>{{ $t('father_phone') }} : {{ student.d_phone_number }}</VCardText>
+              <VCardText>{{ $t('mother_name') }} : {{ student.m_first_name }} {{ student.m_last_name }}</VCardText>
+              <VCardText>{{ $t('mother_job') }} : {{ student.m_job }}</VCardText>
+              <VCardText>{{ $t('mother_phone') }} : {{ student.m_phone_number }}</VCardText>
+              <VCardText>{{ $t('guardian_name') }} : {{ student.g_first_name }} {{ student.g_last_name }}</VCardText>
+              <VCardText>{{ $t('guardian_job') }} : {{ student.g_job }}</VCardText>
+              <VCardText>{{ $t('guardian_phone') }} : {{ student.g_phone_number }}</VCardText>
             </VCard>
           </VCol>
           <VCol

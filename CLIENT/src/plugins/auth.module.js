@@ -105,6 +105,8 @@ export const useAuthStore = defineStore("auth", {
             this._authenticated = false
             this._accessToken = null
             this._refreshToken = null
+            this._user = {}
+            this._settings = {}
             router.push({ path: "/login" })
           }
         })        
@@ -113,6 +115,8 @@ export const useAuthStore = defineStore("auth", {
     setAuth(data) {
       if (data) {
         this._user = data
+      } else {
+        this._user = {}
       }
     },
 

@@ -18,7 +18,7 @@ class LevelController extends Controller
 
         try {
 
-            $q = Level::filter(['search' => $request->search])->latest()->paginate($request->perPage);
+            $q = Level::filter(['search' => $request->search])->orderBy('level', 'asc')->paginate($request->perPage);
 
             $result['data'] = $q;
 
